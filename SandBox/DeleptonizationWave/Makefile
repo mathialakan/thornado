@@ -1,11 +1,14 @@
 MICROPHYSICS           = WEAKLIB
-MOMENT_CLOSURE         = MAXIMUM_ENTROPY_CB
-NEUTRINO_MATTER_SOLVER = FIXED_POINT_COUPLED
+MOMENT_CLOSURE         = MINERBO
+NEUTRINO_MATTER_SOLVER = FIXED_POINT_NESTED_AA
 TWOMOMENT_ORDER        = ORDER_1
 
 THORNADO_DIR ?= ../../../
 include $(THORNADO_DIR)/Build/Makefile_Build
 include $(THORNADO_DIR)/Build/Makefile_Thornado_Dependencies
+ifeq ($(TWOMOMENT_ORDER),ORDER_V)
+  include $(THORNADO_DIR)/SandBox/TwoMoment_OrderV/Makefile_TwoMoment_OrderV_ObjectFiles
+endif
 
 WEAKLIB_DIR ?= $(HOME)/weaklib
 include $(WEAKLIB_DIR)/Distributions/Build/Makefile_Path
@@ -14,6 +17,9 @@ include $(WEAKLIB_DIR)/Distributions/Build/Makefile_WeakLib_Dependencies
 
 VPATH += $(THORNADO_DIR)/SandBox/DeleptonizationWave
 VPATH += $(THORNADO_DIR)/SandBox/Interface_FLASH
+ifeq ($(TWOMOMENT_ORDER),ORDER_V)
+  VPATH += $(THORNADO_DIR)/SandBox/TwoMoment_OrderV
+endif
 
 #DEFINES += $(PP)-DTHORNADO_DEBUG
 DEFINES += $(PP)THORNADO_EULER_NOGPU
@@ -24,11 +30,11 @@ all: DeleptonizationWave DeleptonizationWave1D
 
 DeleptonizationWave: \
 	$(weaklib) \
-	$(thornado) \
+        $(thornado) \
 	InitializationModule.o \
 	TimeSteppingModule_Flash.o \
 	DeleptonizationWave.o
-	$(FLINKER) $(FLAGS) -o DeleptonizationWave_$(MACHINE) \
+	$(FLINKER) $(FLAGS) -o DeleptonizationWave_$(TWOMOMENT_ORDER)_$(MACHINE) \
 	$(weaklib) \
 	$(thornado) \
 	InitializationModule.o \
@@ -38,11 +44,11 @@ DeleptonizationWave: \
 
 DeleptonizationWave1D: \
 	$(weaklib) \
-	$(thornado) \
+        $(thornado) \
 	InitializationModule.o \
 	TimeSteppingModule_Flash.o \
 	DeleptonizationWave1D.o
-	$(FLINKER) $(FLAGS) -o DeleptonizationWave1D_$(MACHINE) \
+	$(FLINKER) $(FLAGS) -o DeleptonizationWave1D_$(TWOMOMENT_ORDER)_$(MACHINE) \
 	$(weaklib) \
 	$(thornado) \
 	InitializationModule.o \
@@ -55,8 +61,8 @@ clean:
 	rm -f *.cub *.ptx
 
 clobber: clean
-	rm -f DeleptonizationWave_$(MACHINE)
-	rm -f DeleptonizationWave1D_$(MACHINE)
+	rm -f *_$(MACHINE)
+	rm -f *_$(MACHINE)
 
 DeleptonizationWave.o: \
   KindModule.o \
@@ -130,17 +136,3 @@ InitializationModule.o: \
   NeutrinoOpacitiesComputationModule.o \
   TwoMoment_UtilitiesModule.o \
   InitializationModule.F90
-
-TimeSteppingModule_Flash.o: \
-  KindModule.o \
-  ProgramHeaderModule.o \
-  TimersModule.o \
-  FluidFieldsModule.o \
-  RadiationFieldsModule.o \
-  TwoMoment_DiscretizationModule_Streaming.o \
-  TwoMoment_DiscretizationModule_Collisions_Neutrinos.o \
-  TwoMoment_PositivityLimiterModule.o \
-  PhysicalConstantsModule.o \
-  GeometryFieldsModuleE.o \
-  GeometryFieldsModule.o \
-  TimeSteppingModule_Flash.F90
