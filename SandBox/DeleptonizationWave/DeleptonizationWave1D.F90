@@ -106,6 +106,9 @@ PROGRAM DeleptonizationWave1D
     InitializePositivityLimiter_TwoMoment, &
     FinalizePositivityLimiter_TwoMoment, &
     ApplyPositivityLimiter_TwoMoment
+  USE TwoMoment_TroubledCellIndicatorModule, ONLY: &
+    InitializeTroubledCellIndicator_TwoMoment, &
+    FinalizeTroubledCellIndicator_TwoMoment
   USE TwoMoment_DiscretizationModule_Collisions_Neutrinos_OrderV, ONLY: &
     ComputeIncrement_TwoMoment_Implicit
   USE TwoMoment_TimeSteppingModule_OrderV, ONLY: &
@@ -121,6 +124,7 @@ PROGRAM DeleptonizationWave1D
   CHARACTER(32) :: TimeSteppingScheme
   LOGICAL       :: wrt
   LOGICAL       :: UseSlopeLimiter, UsePositivityLimiter , UseEnergyLimiter
+  LOGICAL       :: UseTroubledCellIndicator
   LOGICAL       :: EvolveEuler, EvolveTwoMoment
   INTEGER       :: iCycle, iCycleD, iCycleT
   INTEGER       :: nE, bcE, nX(3), nNodes, nSpecies
@@ -142,14 +146,14 @@ PROGRAM DeleptonizationWave1D
   eL = 0.0d0 * MeV
   eR = 3.0d2 * MeV
   ZoomE = 1.158291374972257_DP
-  bcE = 1   !!!!! 2
+  bcE   = 10
 
-!!$  C_TCI = 0.1_DP
-  UseSlopeLimiter      = .FALSE.
-  UsePositivityLimiter = .TRUE.
-  UseEnergyLimiter     = .FALSE.
-  EvolveEuler          = .FALSE.
-  EvolveTwoMoment      = .TRUE.
+  UseSlopeLimiter          = .FALSE.
+  UsePositivityLimiter     = .TRUE.
+  UseEnergyLimiter         = .FALSE.
+  UseTroubledCellIndicator = .FALSE.
+  EvolveEuler              = .FALSE.
+  EvolveTwoMoment          = .TRUE.
 
   ProfileName = 'input_thornado_VX_100ms.dat'
 
@@ -165,9 +169,9 @@ PROGRAM DeleptonizationWave1D
            nX_Option &
              = nX, &
            swX_Option &
-             = [ 01, 0, 0 ], & !!!
+             = [ 01, 0, 0 ], &
            bcX_Option &
-             = [ 30, 0, 0 ], & !!! 32
+             = [ 30, 0, 0 ], &
            xL_Option &
              = xL, &
            xR_Option &
@@ -251,19 +255,19 @@ PROGRAM DeleptonizationWave1D
 
   CALL InitializeClosure_TwoMoment
 
-!!$  ! --- Initialize Troubled Cell Indicator ---
-!!$
-!!$  CALL InitializeTroubledCellIndicator_TwoMoment &
-!!$         ( UseTroubledCellIndicator_Option &
-!!$             = UseTroubledCellIndicator, &
-!!$           C_TCI_Option &
-!!$             = C_TCI, &
-!!$           Verbose_Option &
-!!$             = .TRUE. )
+#ifdef TWOMOMENT_ORDER_V
+  ! --- Initialize Troubled Cell Indicator ---
+
+  CALL InitializeTroubledCellIndicator_TwoMoment &
+         ( UseTroubledCellIndicator_Option &
+             = UseTroubledCellIndicator, &
+           C_TCI_Option &
+             = Zero, &
+           Verbose_Option &
+             = .TRUE. )
 
   ! --- Initialize Limiter ---
 
-#ifdef TWOMOMENT_ORDER_V
     call InitializeSlopeLimiter_TwoMoment &
            ( BetaTVD_Option &
                = 1.75_DP, &
@@ -411,8 +415,6 @@ PROGRAM DeleptonizationWave1D
 
     CALL TimersStart( Timer_Evolve )
 
-    PRINT*, ' DeleptonizationWave1D.F90: 398 -> '
-
 #ifdef TWOMOMENT_ORDER_V 
     CALL Update_IMEX_RK &
            ( dt, uGE, uGF, uCF, uCR, ComputeIncrement_TwoMoment_Implicit )
@@ -425,8 +427,6 @@ PROGRAM DeleptonizationWave1D
              SingleStage_Option = .FALSE., &
              CallFromThornado_Option = .TRUE. )
 #endif
-
-    PRINT*, ' DeleptonizationWave1D.F90: 410 <- '
 
     t = t + dt
 
@@ -519,11 +519,13 @@ PROGRAM DeleptonizationWave1D
 
   CALL FinalizeOpacities_TABLE
 
-  CALL FinalizePositivityLimiter_TwoMoment
-
 #ifdef TWOMOMENT_ORDER_V
-    call FinalizeSlopeLimiter_TwoMoment
+  CALL FinalizeTroubledCellIndicator_TwoMoment
+
+  CALL FinalizeSlopeLimiter_TwoMoment
 #endif
+
+  CALL FinalizePositivityLimiter_TwoMoment
 
   CALL FinalizeProgram
 
