@@ -30,6 +30,8 @@ PROGRAM DeleptonizationWave1D
     Timer_PL_Theta_1, &
     Timer_PL_Theta_2, &
     Timer_PL_Out
+  USE ReferenceElementModuleZ, ONLY: &
+    InitializeReferenceElementZ
   USE ReferenceElementModuleX, ONLY: &
     InitializeReferenceElementX, &
     FinalizeReferenceElementX
@@ -76,8 +78,6 @@ PROGRAM DeleptonizationWave1D
   USE OpacityModule_TABLE, ONLY: &
     InitializeOpacities_TABLE, &
     FinalizeOpacities_TABLE
-  USE TimeSteppingModule_Flash, ONLY: &
-    Update_IMEX_PDARS
   USE InitializationModule, ONLY: &
     InitializeFields_DeleptonizationWave
   USE InputOutputModuleHDF, ONLY: &
@@ -86,6 +86,7 @@ PROGRAM DeleptonizationWave1D
     ComputePrimitive_Euler
   USE TwoMoment_ClosureModule, ONLY: &
     InitializeClosure_TwoMoment
+#ifdef TWOMOMENT_ORDER_1
   USE TwoMoment_PositivityLimiterModule, ONLY: &
     InitializePositivityLimiter_TwoMoment, &
     FinalizePositivityLimiter_TwoMoment, &
@@ -94,21 +95,43 @@ PROGRAM DeleptonizationWave1D
     InitializeNonlinearSolverTally, &
     FinalizeNonlinearSolverTally, &
     WriteNonlinearSolverTally
+  USE TimeSteppingModule_Flash, ONLY: &
+    Update_IMEX_PDARS
+#elif TWOMOMENT_ORDER_V
+  USE TwoMoment_SlopeLimiterModule_OrderV, ONLY: &
+    InitializeSlopeLimiter_TwoMoment, &
+    FinalizeSlopeLimiter_TwoMoment, &
+    ApplySlopeLimiter_TwoMoment
+  USE TwoMoment_PositivityLimiterModule_OrderV, ONLY: &
+    InitializePositivityLimiter_TwoMoment, &
+    FinalizePositivityLimiter_TwoMoment, &
+    ApplyPositivityLimiter_TwoMoment
+  USE TwoMoment_DiscretizationModule_Collisions_Neutrinos_OrderV, ONLY: &
+    ComputeIncrement_TwoMoment_Implicit
+  USE TwoMoment_TimeSteppingModule_OrderV, ONLY: &
+    Initialize_IMEX_RK, &
+    Update_IMEX_RK
+#endif
 
   IMPLICIT NONE
 
   INCLUDE 'mpif.h'
 
   CHARACTER(64) :: ProfileName
+  CHARACTER(32) :: TimeSteppingScheme
   LOGICAL       :: wrt
+  LOGICAL       :: UseSlopeLimiter, UsePositivityLimiter , UseEnergyLimiter
+  LOGICAL       :: EvolveEuler, EvolveTwoMoment
   INTEGER       :: iCycle, iCycleD, iCycleT
-  INTEGER       :: nE, nX(3), nNodes, nSpecies
+  INTEGER       :: nE, bcE, nX(3), nNodes, nSpecies
   REAL(DP)      :: t, dt, t_end, dt_wrt, t_wrt
   REAL(DP)      :: eL, eR, ZoomE
   REAL(DP)      :: xL(3), xR(3), ZoomX(3)
 
   nNodes   = 2
   nSpecies = 2
+
+  TimeSteppingScheme = 'IMEX_PDARS'
 
   nX = [ 128, 1, 1 ]
   xL = [ 0.0_DP           , 0.0_DP, 0.0_DP ]
@@ -119,11 +142,19 @@ PROGRAM DeleptonizationWave1D
   eL = 0.0d0 * MeV
   eR = 3.0d2 * MeV
   ZoomE = 1.158291374972257_DP
+  bcE = 1   !!!!! 2
+
+!!$  C_TCI = 0.1_DP
+  UseSlopeLimiter      = .FALSE.
+  UsePositivityLimiter = .TRUE.
+  UseEnergyLimiter     = .FALSE.
+  EvolveEuler          = .FALSE.
+  EvolveTwoMoment      = .TRUE.
 
   ProfileName = 'input_thornado_VX_100ms.dat'
 
   t       = 0.0_DP
-  t_end   = 1.0d+1 * Millisecond
+  t_end   = 1.0d0 * Millisecond
   dt_wrt  = 1.0d-1 * Millisecond
   iCycleD = 1
   iCycleT = 10
@@ -134,9 +165,9 @@ PROGRAM DeleptonizationWave1D
            nX_Option &
              = nX, &
            swX_Option &
-             = [ 01, 1, 1 ], &
+             = [ 01, 0, 0 ], & !!!
            bcX_Option &
-             = [ 32, 0, 0 ], &
+             = [ 30, 0, 0 ], & !!! 32
            xL_Option &
              = xL, &
            xR_Option &
@@ -145,6 +176,10 @@ PROGRAM DeleptonizationWave1D
              = ZoomX, &
            nE_Option &
              = nE, &
+           swE_Option &
+             = 1, &
+           bcE_Option &
+             = bcE, &
            eL_Option &
              = eL, &
            eR_Option &
@@ -188,13 +223,11 @@ PROGRAM DeleptonizationWave1D
 
   ! --- Phase Space Reference Element ---
 
+  CALL InitializeReferenceElementZ
+
   CALL InitializeReferenceElement
 
   CALL InitializeReferenceElement_Lagrange
-
-  ! --- Initialize Moment Closure ---
-
-  CALL InitializeClosure_TwoMoment
 
   ! --- Initialize Equation of State ---
 
@@ -214,18 +247,66 @@ PROGRAM DeleptonizationWave1D
              = 'wl-Op-SFHo-15-25-50-E40-B85-Pair.h5', &
            Verbose_Option = .TRUE. )
 
-  ! --- Initialize Positivity Limiter ---
+  ! --- Initialize Moment Closure ---
+
+  CALL InitializeClosure_TwoMoment
+
+!!$  ! --- Initialize Troubled Cell Indicator ---
+!!$
+!!$  CALL InitializeTroubledCellIndicator_TwoMoment &
+!!$         ( UseTroubledCellIndicator_Option &
+!!$             = UseTroubledCellIndicator, &
+!!$           C_TCI_Option &
+!!$             = C_TCI, &
+!!$           Verbose_Option &
+!!$             = .TRUE. )
+
+  ! --- Initialize Limiter ---
+
+#ifdef TWOMOMENT_ORDER_V
+    call InitializeSlopeLimiter_TwoMoment &
+           ( BetaTVD_Option &
+               = 1.75_DP, &
+             UseSlopeLimiter_Option &
+               = UseSlopeLimiter, &
+             Verbose_Option &
+               = .TRUE. )
 
   CALL InitializePositivityLimiter_TwoMoment &
          ( Min_1_Option = 0.0d0 + SqrtTiny, &
            Max_1_Option = 1.0d0 - EPSILON(1.0d0), &
            Min_2_Option = 0.0d0 + SqrtTiny, &
            UsePositivityLimiter_Option &
+             = UsePositivityLimiter, &
+           UseEnergyLimiter_Option &
+             = UseEnergyLimiter, &
+           Verbose_Option &
              = .TRUE. )
+
+#elif TWOMOMENT_ORDER_1
+  CALL InitializePositivityLimiter_TwoMoment &
+         ( Min_1_Option = 0.0d0 + SqrtTiny, &
+           Max_1_Option = 1.0d0 - EPSILON(1.0d0), &
+           Min_2_Option = 0.0d0 + SqrtTiny, &
+           UsePositivityLimiter_Option &
+             = UsePositivityLimiter, &
+           Verbose_Option &
+             = .TRUE. )
+
+#endif
 
   ! --- Set Initial Condition ---
 
   CALL InitializeFields_DeleptonizationWave( ProfileName )
+
+  ! --- Initialize Time Stepper ---
+
+#ifdef TWOMOMENT_ORDER_V
+   CALL Initialize_IMEX_RK &
+          ( TRIM( TimeSteppingScheme ), &
+            EvolveEuler_Option = EvolveEuler, &
+            EvolveTwoMoment_Option = EvolveTwoMoment )
+#endif
 
   ! --- Write Initial Condition Before Limiter ---
 
@@ -243,8 +324,17 @@ PROGRAM DeleptonizationWave1D
 
   CALL TimersStop( Timer_InputOutput )
 
+#ifdef TWOMOMENT_ORDER_1
   CALL ApplyPositivityLimiter_TwoMoment &
          ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, uGE, uGF, uCR )
+
+#elif TWOMOMENT_ORDER_V
+  CALL ApplySlopeLimiter_TwoMoment &
+         ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, uGE, uGF, uCF, uCR )
+
+  CALL ApplyPositivityLimiter_TwoMoment &
+         ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, uGE, uGF, uCF, uCR )
+#endif
 
   ! Reset these timers
   Timer_PositivityLimiter = Zero
@@ -273,7 +363,9 @@ PROGRAM DeleptonizationWave1D
 
   CALL TimersStop( Timer_Initialize )
 
+#ifdef TWOMOMENT_ORDER_1
   CALL InitializeNonlinearSolverTally
+#endif
 
   ! --- Evolve ---
 
@@ -319,12 +411,22 @@ PROGRAM DeleptonizationWave1D
 
     CALL TimersStart( Timer_Evolve )
 
+    PRINT*, ' DeleptonizationWave1D.F90: 398 -> '
+
+#ifdef TWOMOMENT_ORDER_V 
+    CALL Update_IMEX_RK &
+           ( dt, uGE, uGF, uCF, uCR, ComputeIncrement_TwoMoment_Implicit )
+
+#elif TWOMOMENT_ORDER_1
     CALL Update_IMEX_PDARS &
            ( dt, uCF, uCR, &
              Explicit_Option = .TRUE., &
              Implicit_Option = .TRUE., &
              SingleStage_Option = .FALSE., &
              CallFromThornado_Option = .TRUE. )
+#endif
+
+    PRINT*, ' DeleptonizationWave1D.F90: 410 <- '
 
     t = t + dt
 
@@ -356,11 +458,13 @@ PROGRAM DeleptonizationWave1D
 
     END IF
 
+#ifdef TWOMOMENT_ORDER_1
     IF( MOD( iCycle, iCycleT ) == 0 )THEN
 
       CALL WriteNonlinearSolverTally( t )
 
     END IF
+#endif
 
   END DO
 
@@ -395,7 +499,9 @@ PROGRAM DeleptonizationWave1D
 
   CALL FinalizeTimers
 
+#ifdef TWOMOMENT_ORDER_1
   CALL FinalizeNonlinearSolverTally
+#endif
 
   CALL FinalizeReferenceElementX
 
@@ -414,6 +520,10 @@ PROGRAM DeleptonizationWave1D
   CALL FinalizeOpacities_TABLE
 
   CALL FinalizePositivityLimiter_TwoMoment
+
+#ifdef TWOMOMENT_ORDER_V
+    call FinalizeSlopeLimiter_TwoMoment
+#endif
 
   CALL FinalizeProgram
 
