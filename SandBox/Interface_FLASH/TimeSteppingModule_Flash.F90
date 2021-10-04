@@ -11,11 +11,17 @@ MODULE TimeSteppingModule_Flash
     iZ_B0, iZ_B1, iZ_E0, iZ_E1
   USE ReferenceElementModule, ONLY: &
     NodeNumberTable4D
+#ifdef TWOMOMENT_ORDER_1
   USE TimersModule, ONLY: &
     TimersStart, &
     TimersStop, &
     Timer_AddFieldsF, &
     Timer_AddFieldsR
+#elif TWOMOMENT_ORDER_V
+  USE TwoMoment_TimersModule_OrderV, ONLY: &
+    TimersStart, &
+    TimersStop
+#endif
   USE FluidFieldsModule, ONLY: &
     nCF, iCF_Ne
   USE RadiationFieldsModule, ONLY: &
@@ -273,6 +279,7 @@ CONTAINS
 
       CALL ApplyPositivityLimiter_TwoMoment &
              ( iZ_B0_SW_P, iZ_E0_SW_P, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
+
 #endif
 
       ! --- Apply Boundary Condition ---
@@ -341,6 +348,7 @@ CONTAINS
 
     CALL ApplyPositivityLimiter_TwoMoment &
            ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
+
 #endif
 
     ! --- Implicit Step ---
@@ -421,12 +429,14 @@ CONTAINS
 #ifdef TWOMOMENT_ORDER_1
     CALL ApplyPositivityLimiter_TwoMoment &
            ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_R )
+
 #elif TWOMOMENT_ORDER_V
     CALL ApplySlopeLimiter_TwoMoment &
            ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
 
     CALL ApplyPositivityLimiter_TwoMoment &
            ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
+
 #endif
 
     IF( .NOT. SingleStage ) THEN
@@ -462,10 +472,12 @@ CONTAINS
         CALL ComputeIncrement_TwoMoment_Explicit &
                ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, &
                  uGE, uGF, U_R, T1_R )
+
 #elif TWOMOMENT_ORDER_V
         CALL ComputeIncrement_TwoMoment_Explicit &
                ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, &
                  uGE, uGF, U_F, U_R, T1_R )
+
 #endif
 
       ELSE
@@ -515,11 +527,14 @@ CONTAINS
 #ifdef TWOMOMENT_ORDER_1
       CALL ApplyPositivityLimiter_TwoMoment &
              ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_R )
+
 #elif TWOMOMENT_ORDER_V
       CALL ApplySlopeLimiter_TwoMoment &
              ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
+
       CALL ApplyPositivityLimiter_TwoMoment &
              ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
+
 #endif
 
       ! --- Implicit Step ---
@@ -532,6 +547,7 @@ CONTAINS
                  uGE, uGF, &
                  U_F, Q1_F, &
                  U_R, Q1_R )
+
 #elif TWOMOMENT_ORDER_V
         CALL ComputeIncrement_TwoMoment_Implicit &
                (iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, Half * dt, &
@@ -597,11 +613,14 @@ CONTAINS
 #ifdef TWOMOMENT_ORDER_1
       CALL ApplyPositivityLimiter_TwoMoment &
              ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_R )
+
 #elif TWOMOMENT_ORDER_V
       CALL ApplySlopeLimiter_TwoMoment &
              ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
+
       CALL ApplyPositivityLimiter_TwoMoment &
              ( iZ_B0_SW, iZ_E0_SW, iZ_B1, iZ_E1, uGE, uGF, U_F, U_R )
+
 #endif
 
     END IF
@@ -652,7 +671,9 @@ CONTAINS
 
     INTEGER :: iNodeX, iX1, iX2, iX3, iFF
 
+#ifdef TWOMOMENT_ORDER_1
     CALL TimersStart( Timer_AddFieldsF )
+#endif
 
 #if defined(THORNADO_OMP_OL)
     !$OMP TARGET ENTER DATA &
@@ -696,7 +717,9 @@ CONTAINS
     !$ACC DELETE( iX_B, iX_E )
 #endif
 
+#ifdef TWOMOMENT_ORDER_1
     CALL TimersStop( Timer_AddFieldsF )
+#endif
 
   END SUBROUTINE AddFields_Fluid
 
@@ -716,7 +739,9 @@ CONTAINS
 
     INTEGER :: iNode, iZ1, iZ2, iZ3, iZ4, iRF, iS
 
+#ifdef TWOMOMENT_ORDER_1
     CALL TimersStart( Timer_AddFieldsR )
+#endif
 
 #if defined(THORNADO_OMP_OL)
     !$OMP TARGET ENTER DATA &
@@ -764,7 +789,9 @@ CONTAINS
     !$ACC DELETE( iZ_B, iZ_E )
 #endif
 
+#ifdef TWOMOMENT_ORDER_1
     CALL TimersStop( Timer_AddFieldsR )
+#endif
 
   END SUBROUTINE AddFields_Radiation
 
