@@ -15,6 +15,7 @@ PROGRAM DeleptonizationWave1D
   USE ProgramInitializationModule, ONLY: &
     InitializeProgram, &
     FinalizeProgram
+#ifdef TWOMOMENT_ORDER_1
   USE TimersModule, ONLY: &
     InitializeTimers, &
     FinalizeTimers, &
@@ -30,6 +31,14 @@ PROGRAM DeleptonizationWave1D
     Timer_PL_Theta_1, &
     Timer_PL_Theta_2, &
     Timer_PL_Out
+#elif TWOMOMENT_ORDER_V
+  USE TwoMoment_TimersModule_OrderV, ONLY: &
+    InitializeTimers, &
+    FinalizeTimers, &
+    TimersStart, &
+    TimersStop, &
+    Timer_Total
+#endif
   USE ReferenceElementModuleZ, ONLY: &
     InitializeReferenceElementZ
   USE ReferenceElementModuleX, ONLY: &
@@ -86,6 +95,8 @@ PROGRAM DeleptonizationWave1D
     ComputePrimitive_Euler
   USE TwoMoment_ClosureModule, ONLY: &
     InitializeClosure_TwoMoment
+  USE TimeSteppingModule_Flash, ONLY: &
+    Update_IMEX_PDARS
 #ifdef TWOMOMENT_ORDER_1
   USE TwoMoment_PositivityLimiterModule, ONLY: &
     InitializePositivityLimiter_TwoMoment, &
@@ -95,8 +106,6 @@ PROGRAM DeleptonizationWave1D
     InitializeNonlinearSolverTally, &
     FinalizeNonlinearSolverTally, &
     WriteNonlinearSolverTally
-  USE TimeSteppingModule_Flash, ONLY: &
-    Update_IMEX_PDARS
 #elif TWOMOMENT_ORDER_V
   USE TwoMoment_SlopeLimiterModule_OrderV, ONLY: &
     InitializeSlopeLimiter_TwoMoment, &
@@ -109,11 +118,6 @@ PROGRAM DeleptonizationWave1D
   USE TwoMoment_TroubledCellIndicatorModule, ONLY: &
     InitializeTroubledCellIndicator_TwoMoment, &
     FinalizeTroubledCellIndicator_TwoMoment
-  USE TwoMoment_DiscretizationModule_Collisions_Neutrinos_OrderV, ONLY: &
-    ComputeIncrement_TwoMoment_Implicit
-  USE TwoMoment_TimeSteppingModule_OrderV, ONLY: &
-    Initialize_IMEX_RK, &
-    Update_IMEX_RK
 #endif
 
   IMPLICIT NONE
@@ -158,10 +162,18 @@ PROGRAM DeleptonizationWave1D
   ProfileName = 'input_thornado_VX_100ms.dat'
 
   t       = 0.0_DP
-  t_end   = 1.0d0 * Millisecond
-  dt_wrt  = 1.0d-1 * Millisecond
+  t_end   = 1.0d-3 * Millisecond
+  dt_wrt  = 1.0d-4 * Millisecond
   iCycleD = 1
   iCycleT = 10
+
+    WRITE(*,*)
+#ifdef TWOMOMENT_ORDER_V
+    WRITE(*,*) 'INFO: Use TWOMOMENT_ORDER_V'
+#elif TWOMOMENT_ORDER_1
+    WRITE(*,*) 'INFO: Use TWOMOMENT_ORDER_1'
+#endif
+    WRITE(*,*) '---------------------------'
 
   CALL InitializeProgram &
          ( ProgramName_Option &
@@ -205,7 +217,9 @@ PROGRAM DeleptonizationWave1D
 
   CALL InitializeTimers
 
+#ifdef TWOMOMENT_ORDER_1
   CALL TimersStart( Timer_Initialize )
+#endif
 
   ! --- Position Space Reference Element and Geometry ---
 
@@ -303,18 +317,11 @@ PROGRAM DeleptonizationWave1D
 
   CALL InitializeFields_DeleptonizationWave( ProfileName )
 
-  ! --- Initialize Time Stepper ---
-
-#ifdef TWOMOMENT_ORDER_V
-   CALL Initialize_IMEX_RK &
-          ( TRIM( TimeSteppingScheme ), &
-            EvolveEuler_Option = EvolveEuler, &
-            EvolveTwoMoment_Option = EvolveTwoMoment )
-#endif
-
   ! --- Write Initial Condition Before Limiter ---
 
+#ifdef TWOMOMENT_ORDER_1
   CALL TimersStart( Timer_InputOutput )
+#endif
 
   CALL ComputeFromConserved_Fluid
 
@@ -326,9 +333,9 @@ PROGRAM DeleptonizationWave1D
            WriteFF_Option = .TRUE., &
            WriteRF_Option = .TRUE. )
 
+#ifdef TWOMOMENT_ORDER_1
   CALL TimersStop( Timer_InputOutput )
 
-#ifdef TWOMOMENT_ORDER_1
   CALL ApplyPositivityLimiter_TwoMoment &
          ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, uGE, uGF, uCR )
 
@@ -340,18 +347,20 @@ PROGRAM DeleptonizationWave1D
          ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, uGE, uGF, uCF, uCR )
 #endif
 
-  ! Reset these timers
-  Timer_PositivityLimiter = Zero
-  Timer_PL_In             = Zero
-  Timer_PL_Points         = Zero
-  Timer_PL_CellAverage    = Zero
-  Timer_PL_Theta_1        = Zero
-  Timer_PL_Theta_2        = Zero
-  Timer_PL_Out            = Zero
+  !! Reset these timers
+  !Timer_PositivityLimiter = Zero
+  !Timer_PL_In             = Zero
+  !Timer_PL_Points         = Zero
+  !Timer_PL_CellAverage    = Zero
+  !Timer_PL_Theta_1        = Zero
+  !Timer_PL_Theta_2        = Zero
+  !Timer_PL_Out            = Zero
 
   ! --- Write Initial Condition After Limiter ---
 
+#ifdef TWOMOMENT_ORDER_1
   CALL TimersStart( Timer_InputOutput )
+#endif
 
   CALL ComputeFromConserved_Fluid
 
@@ -363,11 +372,11 @@ PROGRAM DeleptonizationWave1D
            WriteFF_Option = .TRUE., &
            WriteRF_Option = .TRUE. )
 
+#ifdef TWOMOMENT_ORDER_1
   CALL TimersStop( Timer_InputOutput )
 
   CALL TimersStop( Timer_Initialize )
 
-#ifdef TWOMOMENT_ORDER_1
   CALL InitializeNonlinearSolverTally
 #endif
 
@@ -413,24 +422,23 @@ PROGRAM DeleptonizationWave1D
 
     END IF
 
+#ifdef TWOMOMENT_ORDER_1
     CALL TimersStart( Timer_Evolve )
+#endif
 
-#ifdef TWOMOMENT_ORDER_V 
-    CALL Update_IMEX_RK &
-           ( dt, uGE, uGF, uCF, uCR, ComputeIncrement_TwoMoment_Implicit )
-
-#elif TWOMOMENT_ORDER_1
     CALL Update_IMEX_PDARS &
            ( dt, uCF, uCR, &
              Explicit_Option = .TRUE., &
              Implicit_Option = .TRUE., &
              SingleStage_Option = .FALSE., &
-             CallFromThornado_Option = .TRUE. )
-#endif
+             CallFromThornado_Option = .TRUE., &
+             BoundaryCondition_Option = 3 )
 
     t = t + dt
 
+#ifdef TWOMOMENT_ORDER_1
     CALL TimersStop( Timer_Evolve )
+#endif
 
     IF( wrt )THEN
 
@@ -440,7 +448,9 @@ PROGRAM DeleptonizationWave1D
       !$ACC UPDATE HOST( uCF, uCR )
 #endif
 
+#ifdef TWOMOMENT_ORDER_1
       CALL TimersStart( Timer_InputOutput )
+#endif
 
       CALL ComputeFromConserved_Fluid
 
@@ -452,7 +462,9 @@ PROGRAM DeleptonizationWave1D
                WriteFF_Option = .TRUE., &
                WriteRF_Option = .TRUE. )
 
+#ifdef TWOMOMENT_ORDER_1
       CALL TimersStop( Timer_InputOutput )
+#endif
 
       wrt = .FALSE.
 
@@ -476,7 +488,9 @@ PROGRAM DeleptonizationWave1D
 
   ! --- Write Final Solution ---
 
+#ifdef TWOMOMENT_ORDER_1
   CALL TimersStart( Timer_InputOutput )
+#endif
 
   CALL ComputeFromConserved_Fluid
 
@@ -488,12 +502,20 @@ PROGRAM DeleptonizationWave1D
            WriteFF_Option = .TRUE., &
            WriteRF_Option = .TRUE. )
 
+#ifdef TWOMOMENT_ORDER_1
   CALL TimersStop( Timer_InputOutput )
+#endif
 
   WRITE(*,*)
+#ifdef TWOMOMENT_ORDER_1
   WRITE(*,'(A6,A,I6.6,A,ES12.6E2,A)') &
     '', 'Finished ', iCycle, ' Cycles in ', Timer_Evolve, ' s'
+#elif TWOMOMENT_ORDER_V
+  WRITE(*,'(A6,A,I6.6,A,ES12.6E2,A)') &
+    '', 'Finished ', iCycle, ' Cycles'
+#endif
   WRITE(*,*)
+
 
   ! --- Finalize ---
 
