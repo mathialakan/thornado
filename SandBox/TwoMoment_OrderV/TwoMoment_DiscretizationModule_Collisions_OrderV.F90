@@ -324,7 +324,7 @@ CONTAINS
     PRINT*, "--- before update ---"
     PRINT*, "CR_N Bdry= ", CR_N(:,1,1,1)
     PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "CR_N = ", CR_N(:,1,1,nDOFX * nX(1) * nX(2) * nX(3) + 1)
+    PRINT*, "CR_N = ", CR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
     PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
 #if defined(THORNADO_OACC  )
     !$ACC UPDATE SELF( CR_N, U_R )
@@ -332,7 +332,7 @@ CONTAINS
     PRINT*, "--- after update ---"
     PRINT*, "CR_N = ", CR_N(:,1,1,1)
     PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "CR_N = ", CR_N(:,1,1,nDOFX * nX(1) * nX(2) * nX(3) + 1)
+    PRINT*, "CR_N = ", CR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
     PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
 
 
@@ -550,7 +550,7 @@ CONTAINS
     PRINT*, "--- before update ---"
     PRINT*, "dCR_N Bdry= ", dCR_N(:,1,1,1)
     PRINT*, "dU_R Bdry= ", dU_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1,nDOFX * nX(1) * nX(2) * nX(3) + 1)
+    PRINT*, "dCR_N = ", dCR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
     PRINT*, "dU_R = ", dU_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
 
 #if defined(THORNADO_OACC  )
@@ -559,7 +559,7 @@ CONTAINS
     PRINT*, "--- after update ---"
     PRINT*, "dCR_N Bdry= ", dCR_N(:,1,1,1)
     PRINT*, "dU_R Bdry= ", dU_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1,nDOFX * nX(1) * nX(2) * nX(3) + 1)
+    PRINT*, "dCR_N = ", dCR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
     PRINT*, "dU_R = ", dU_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
 
 
