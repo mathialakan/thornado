@@ -57,7 +57,7 @@ PROGRAM ApplicationDriver
 
   CoordinateSystem = 'CARTESIAN'
 
-  ProgramName = 'SineWaveStreaming'
+  ProgramName = 'SineWaveDiffusion'
 
   C_TCI = 1.0_DP
   UseTroubledCellIndicator = .FALSE.
@@ -105,7 +105,7 @@ PROGRAM ApplicationDriver
 
     CASE( 'SineWaveDiffusion' )
 
-      nX  = [ 16, 1, 1 ]
+      nX  = [ 4, 4, 4 ]
       xL  = [ - 3.0_DP, 0.0_DP, 0.0_DP ]
       xR  = [ + 3.0_DP, 1.0_DP, 1.0_DP ]
       bcX = [ 1, 1, 1 ]
@@ -119,9 +119,9 @@ PROGRAM ApplicationDriver
 
       TimeSteppingScheme = 'IMEX_PDARS'
 
-      t_end   = 1.0d-1
-      iCycleD = 10
-      iCycleW = 10
+      t_end   = 5.0d-2
+      iCycleD = 1
+      iCycleW = 1
       maxCycles = 1000000
 
       V_0 = [ 0.3_DP, 0.0_DP, 0.0_DP ]

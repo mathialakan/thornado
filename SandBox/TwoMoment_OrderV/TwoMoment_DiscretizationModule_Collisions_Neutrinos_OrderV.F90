@@ -129,9 +129,6 @@ CONTAINS
 
     CALL TimersStart( Timer_Collisions )
 
-    ! PRINT*, "--- In implicit solve ---"
-    ! PRINT*, "--- Initializing ---"
-
     CALL InitializeCollisions( iZ_B0, iZ_E0, iZ_B1, iZ_E1 )
 
 #if   defined(THORNADO_OMP_OL)
@@ -143,8 +140,6 @@ CONTAINS
     !$ACC COPYIN( GE, GX, U_F, U_R, iZ_B0, iZ_E0, iZ_B1, iZ_E1 ) &
     !$ACC CREATE( dU_F, dU_R )
 #endif
-
-    ! PRINT*, "--- Mapping data ---"
 
     CALL MapDataForCollisions( iZ_B0, iZ_E0, iZ_B1, iZ_E1, GE, GX, U_F, U_R )
 

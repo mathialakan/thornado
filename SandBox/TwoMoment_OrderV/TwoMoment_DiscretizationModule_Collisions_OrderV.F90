@@ -108,34 +108,35 @@ CONTAINS
     CALL InitializeCollisions( iZ_B0, iZ_E0, iZ_B1, iZ_E1 )
 
 
-#if defined(THORNADO_OMP_OL)
-    !!$OMP TARGET ENTER DATA &
-    !!$OMP MAP( to: GX, U_F, U_R, iZ_B0, iZ_E0, iZ_B1, iZ_E1 ) &
-    !!$OMP MAP( alloc: dU_F, dU_R )
-#elif defined(THORNADO_OACC)
-    !$ACC ENTER DATA &
-    !$ACC COPYIN( GX, U_F, U_R, iZ_B0, iZ_E0, iZ_B1, iZ_E1 ) &
-    !$ACC CREATE( dU_F, dU_R )
+    PRINT*, "--- before send, before update ---"
+    PRINT*, "CF_N = ", CF_N(:,1)
+    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
+#if defined(THORNADO_OACC  )
+    !$ACC UPDATE SELF( CF_N, U_F )
 #endif
-
-
-
-!PRINT*
-!PRINT*, " BEFORE "
-!PRINT*, "  uOP = ", uOP(1,1,2,1,2,1,1)
-!PRINT*, "  OP_N = ", OP_N(:,1,1,1)
-!PRINT*, "  dU_F = ", dU_F(:,2,1,1,1)
-
+    PRINT*, "--- before send, after update ---"
+    PRINT*, "CF_N = ", CF_N(:,1)
+    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
 
 #if defined(THORNADO_OMP_OL)
     !$OMP TARGET ENTER DATA &
-    !$OMP MAP( to: iZ_B1, iZ_E1 ) &
+    !$OMP MAP( to: GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0 ) &
     !$OMP MAP( alloc: dU_F, dU_R )
 #elif defined(THORNADO_OACC)
     !$ACC ENTER DATA &
-    !$ACC COPYIN( iZ_B1, iZ_E1 ) &
+    !$ACC COPYIN( GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0 ) &
     !$ACC CREATE( dU_F, dU_R )
 #endif
+
+PRINT*, "--- after send, before update ---"
+PRINT*, "CF_N = ", CF_N(:,1)
+PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
+#if defined(THORNADO_OACC  )
+!$ACC UPDATE SELF( CF_N, U_F )
+#endif
+PRINT*, "--- after send, after update ---"
+PRINT*, "CF_N = ", CF_N(:,1)
+PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
 
     CALL TimersStart( Timer_Collisions_Zero )
 
@@ -198,26 +199,6 @@ CONTAINS
 
 
 
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET EXIT DATA &
-    !$OMP MAP( from: dU_F, dU_R ) &
-    !$OMP MAP( release: iZ_B1, iZ_E1 )
-#elif defined(THORNADO_OACC)
-    !$ACC EXIT DATA &
-    !$ACC COPYOUT( dU_F, dU_R ) &
-    !$ACC DELETE( iZ_B1, iZ_E1 )
-#endif
-
-
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET ENTER DATA &
-    !$OMP MAP( to: GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0, nX, nZ ) &
-    !$OMP MAP( alloc: GX_N, CF_N, CR_N, OP_N)
-#elif defined(THORNADO_OACC)
-    !$ACC ENTER DATA &
-    !$ACC COPYIN( GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0, nX, nZ ) &
-    !$ACC CREATE( GX_N, CF_N, CR_N, OP_N )
-#endif
 
 
     CALL TimersStart( Timer_Collisions_Permute )
@@ -248,6 +229,16 @@ CONTAINS
     END DO
     END DO
 
+    PRINT*, "--- before update ---"
+    PRINT*, "GX_N = ", GX_N(:,1)
+    PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
+#if defined(THORNADO_OACC  )
+    !$ACC UPDATE SELF( GX_N, GX )
+#endif
+    PRINT*, "--- after update ---"
+    PRINT*, "GX_N = ", GX_N(:,1)
+    PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
+
     ! --- Arrange Fluid Fields ---
 
 #if   defined( THORNADO_OMP_OL )
@@ -274,6 +265,16 @@ CONTAINS
     END DO
     END DO
 
+
+    PRINT*, "--- before update ---"
+    PRINT*, "CF_N = ", CF_N(:,1)
+    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
+#if defined(THORNADO_OACC  )
+    !$ACC UPDATE SELF( CF_N, U_F )
+#endif
+    PRINT*, "--- after update ---"
+    PRINT*, "CF_N = ", CF_N(:,1)
+    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
     ! --- Arrange Radiation Fields ---
 
 #if   defined( THORNADO_OMP_OL )
@@ -308,6 +309,16 @@ CONTAINS
     END DO
     END DO
     END DO
+
+    PRINT*, "--- before update ---"
+    PRINT*, "CR_N = ", CR_N(:,1,1,1)
+    PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
+#if defined(THORNADO_OACC  )
+    !$ACC UPDATE SELF( CR_N, U_R )
+#endif
+    PRINT*, "--- after update ---"
+    PRINT*, "CR_N = ", CR_N(:,1,1,1)
+    PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
 
     ! --- Arrange Opacities ---
 
@@ -346,34 +357,16 @@ CONTAINS
 
     CALL TimersStop( Timer_Collisions_Permute )
 
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET EXIT DATA &
-    !$OMP MAP( from: GX_N, CF_N, CR_N, OP_N ) &
-    !$OMP MAP( release: GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0, nX )
-#elif defined(THORNADO_OACC)
-    !$ACC EXIT DATA &
-    !$ACC COPYOUT( GX_N, CF_N, CR_N, OP_N ) &
-    !$ACC DELETE( GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0, nX )
-#endif
+!     PRINT*, "--- before update ---"
+!     PRINT*, "OP_N = ", OP_N(:,1,1,1)
+! #if defined(THORNADO_OACC  )
+!     !$ACC UPDATE SELF( OP_N )
+! #endif
+!     PRINT*, "--- after update ---"
+!     PRINT*, "OP_N = ", OP_N(:,1,1,1)
+!     PRINT*, "--- opacity ---"
+!     PRINT*, "uOP = ", uOP(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
 
-
-
-!PRINT*
-!PRINT*, " AFTER "
-!PRINT*, "  uOP = ", uOP(1,1,2,1,2,1,1)
-!PRINT*, "  OP_N = ", OP_N(:,1,1,1)
-!PRINT*, "  dU_F = ", dU_F(:,2,1,1,1)
-
-
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET ENTER DATA &
-    !$OMP MAP( to: CF_N, GX_N ) &
-    !$OMP MAP( alloc: PF_N)
-#elif defined(THORNADO_OACC)
-    !$ACC ENTER DATA &
-    !$ACC COPYIN( CF_N, GX_N ) &
-    !$ACC CREATE( PF_N )
-#endif
 
 
     CALL TimersStart( Timer_Collisions_PrimitiveFluid )
@@ -411,31 +404,27 @@ CONTAINS
 
     CALL TimersStop( Timer_Collisions_PrimitiveFluid )
 
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET EXIT DATA &
-    !$OMP MAP( from: PF_N ) &
-    !$OMP MAP( release: CF_N, GX_N )
-#elif defined(THORNADO_OACC)
-    !$ACC EXIT DATA &
-    !$ACC COPYOUT( PF_N ) &
-    !$ACC DELETE( CF_N, GX_N )
+
+    PRINT*, "--- before solve, before update ---"
+    PRINT*, "CR_N = ", CR_N(:,1,1,1)
+    PRINT*, "PF_N = ", PF_N(:,1)
+    PRINT*, "GX_N = ", GX_N(:,1)
+    PRINT*, "OP_N = ", OP_N(:,1,1,1)
+    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
+
+#if defined(THORNADO_OACC  )
+    !$ACC UPDATE SELF( CR_N, PF_N, GX_N, OP_N, dCR_N  )
 #endif
-
-
-
-
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET ENTER DATA &
-    !$OMP MAP( to: CR_N, PF_N, GX_N, OP_N ) &
-    !$OMP MAP( alloc: dCR_N )
-#elif defined(THORNADO_OACC)
-    !$ACC ENTER DATA &
-    !$ACC COPYIN( CR_N, PF_N, GX_N, OP_N ) &
-    !$ACC CREATE( dCR_N )
-#endif
+    PRINT*, "--- before solve, after update ---"
+    PRINT*, "CR_N = ", CR_N(:,1,1,1)
+    PRINT*, "PF_N = ", PF_N(:,1)
+    PRINT*, "GX_N = ", GX_N(:,1)
+    PRINT*, "OP_N = ", OP_N(:,1,1,1)
+    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
 
 
     CALL TimersStart( Timer_Collisions_Solve )
+
 
 #if   defined( THORNADO_OMP_OL )
     !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO SIMD COLLAPSE(3)
@@ -475,26 +464,22 @@ CONTAINS
 
     CALL TimersStop( Timer_Collisions_Solve )
 
+    PRINT*, "--- after solve, before update ---"
+    PRINT*, "CR_N = ", CR_N(:,1,1,1)
+    PRINT*, "PF_N = ", PF_N(:,1)
+    PRINT*, "GX_N = ", GX_N(:,1)
+    PRINT*, "OP_N = ", OP_N(:,1,1,1)
+    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
 
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET EXIT DATA &
-    !$OMP MAP( from: dCR_N ) &
-    !$OMP MAP( release: CR_N, PF_N, GX_N, OP_N )
-#elif defined(THORNADO_OACC)
-    !$ACC EXIT DATA &
-    !$ACC COPYOUT( dCR_N ) &
-    !$ACC DELETE( CR_N, PF_N, GX_N, OP_N )
+#if defined(THORNADO_OACC  )
+    !$ACC UPDATE SELF( CR_N, PF_N, GX_N, OP_N, dCR_N  )
 #endif
-
-
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET ENTER DATA &
-    !$OMP MAP( to: dCR_N, dU_R, nX, iX_B0, iX_E0 )
-#elif defined(THORNADO_OACC)
-    !$ACC ENTER DATA &
-    !$ACC COPYIN( dCR_N, dU_R, nX, iX_B0, iX_E0)
-#endif
-
+    PRINT*, "--- after solve, after update ---"
+    PRINT*, "CR_N = ", CR_N(:,1,1,1)
+    PRINT*, "PF_N = ", PF_N(:,1)
+    PRINT*, "GX_N = ", GX_N(:,1)
+    PRINT*, "OP_N = ", OP_N(:,1,1,1)
+    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
 
     CALL TimersStart( Timer_Collisions_Permute )
 
@@ -544,17 +529,29 @@ CONTAINS
 
     CALL TimersStop( Timer_Collisions_Permute )
 
-#if defined(THORNADO_OMP_OL)
-    !$OMP TARGET EXIT DATA &
-    !$OMP MAP( from: dU_R ) &
-    !$OMP MAP( release: dCR_N, nX, iX_B0 )
-#elif defined(THORNADO_OACC)
-    !$ACC EXIT DATA &
-    !$ACC COPYOUT( dU_R ) &
-    !$ACC DELETE( dCR_N, nX, iX_B0 )
+
+
+    PRINT*, "--- before update ---"
+    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
+    PRINT*, "dU_R = ", dU_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
+
+#if defined(THORNADO_OACC  )
+    !$ACC UPDATE SELF( dCR_N, dU_R )
 #endif
+    PRINT*, "--- after update ---"
+    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
+    PRINT*, "dU_R = ", dU_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
 
 
+#if   defined(THORNADO_OMP_OL)
+    !$OMP TARGET EXIT DATA &
+    !$OMP MAP( from: dU_F, dU_R ) &
+    !$OMP MAP( release: GX, U_F, U_R, iZ_B1, iZ_E1 )
+#elif defined(THORNADO_OACC  )
+    !$ACC EXIT DATA &
+    !$ACC COPYOUT( dU_F, dU_R ) &
+    !$ACC DELETE( GX, U_F, U_R, iZ_B1, iZ_E1 )
+#endif
 
     CALL FinalizeCollisions
 
@@ -1266,10 +1263,30 @@ CONTAINS
     ALLOCATE( dCR_N(nCR,nSpecies,nE_G,nX_G) )
     ALLOCATE( OP_N (nOP,nSpecies,nE_G,nX_G) )
 
+#if   defined(THORNADO_OMP_OL)
+    !$OMP TARGET ENTER DATA &
+    !$OMP MAP( to: iX_B0, iX_E0, nZ, nX ) &
+    !$OMP MAP( alloc: GX_N, CF_N, PF_N, CR_N, dCR_N, OP_N )
+#elif defined(THORNADO_OACC  )
+    !$ACC ENTER DATA &
+    !$ACC COPYIN( iX_B0, iX_E0, nZ, nX ) &
+    !$ACC CREATE( GX_N, CF_N, PF_N, CR_N, dCR_N, OP_N )
+#endif
+
   END SUBROUTINE InitializeCollisions
 
 
   SUBROUTINE FinalizeCollisions
+
+#if   defined(THORNADO_OMP_OL)
+    !$OMP TARGET EXIT DATA &
+    !$OMP MAP( release: iX_B0, iX_E0, nZ, nX, &
+    !$OMP               GX_N, CF_N, PF_N, CR_N, dCR_N, OP_N )
+#elif defined(THORNADO_OACC  )
+    !$ACC EXIT DATA &
+    !$ACC DELETE( iX_B0, iX_E0, nZ, nX, &
+    !$ACC         GX_N, CF_N, PF_N, CR_N, dCR_N, OP_N )
+#endif
 
     DEALLOCATE( GX_N, PF_N, CF_N, CR_N, dCR_N, OP_N )
 
