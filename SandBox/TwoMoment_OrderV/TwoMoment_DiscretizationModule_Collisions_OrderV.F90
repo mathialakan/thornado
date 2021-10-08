@@ -108,21 +108,6 @@ CONTAINS
     CALL InitializeCollisions( iZ_B0, iZ_E0, iZ_B1, iZ_E1 )
 
 
-    PRINT*, "--- before send, before update ---"
-    PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-    PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+2,iX_B0(2)+2,iX_B0(3)+2,:,1)
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( U_R, U_F, GX)
-#endif
-    PRINT*, "--- before send, after update ---"
-    PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-    PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+2,iX_B0(2)+2,iX_B0(3)+2,:,1)
-
-
 #if defined(THORNADO_OMP_OL)
     !$OMP TARGET ENTER DATA &
     !$OMP MAP( to: GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0 ) &
@@ -132,22 +117,6 @@ CONTAINS
     !$ACC COPYIN( GX, U_F, U_R, uOP, iZ_B1, iZ_E1, iX_B0 ) &
     !$ACC CREATE( dU_F, dU_R )
 #endif
-
-  PRINT*, "--- after send, before update ---"
-  PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-  PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-  PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-  PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+2,iX_B0(2)+2,iX_B0(3)+2,:,1)
-
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( U_R, U_F, GX)
-#endif
-  PRINT*, "--- after send, after update ---"
-  PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-  PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-  PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-  PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+2,iX_B0(2)+2,iX_B0(3)+2,:,1)
-
 
     CALL TimersStart( Timer_Collisions_Zero )
 
@@ -240,15 +209,6 @@ CONTAINS
     END DO
     END DO
 
-    PRINT*, "--- before update ---"
-    PRINT*, "GX_N = ", GX_N(:,1)
-    PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( GX_N, GX )
-#endif
-    PRINT*, "--- after update ---"
-    PRINT*, "GX_N = ", GX_N(:,1)
-    PRINT*, "GX = ", GX(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
 
     ! --- Arrange Fluid Fields ---
 
@@ -277,15 +237,6 @@ CONTAINS
     END DO
 
 
-    PRINT*, "--- before update ---"
-    PRINT*, "CF_N = ", CF_N(:,1)
-    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( CF_N, U_F )
-#endif
-    PRINT*, "--- after update ---"
-    PRINT*, "CF_N = ", CF_N(:,1)
-    PRINT*, "U_F = ", U_F(1,iX_B0(1),iX_B0(2),iX_B0(3),:)
     ! --- Arrange Radiation Fields ---
 
 #if   defined( THORNADO_OMP_OL )
@@ -320,20 +271,6 @@ CONTAINS
     END DO
     END DO
     END DO
-
-    PRINT*, "--- before update ---"
-    PRINT*, "CR_N Bdry= ", CR_N(:,1,1,1)
-    PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "CR_N = ", CR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
-    PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( CR_N, U_R )
-#endif
-    PRINT*, "--- after update ---"
-    PRINT*, "CR_N = ", CR_N(:,1,1,1)
-    PRINT*, "U_R Bdry= ", U_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "CR_N = ", CR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
-    PRINT*, "U_R = ", U_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
 
 
     ! --- Arrange Opacities ---
@@ -373,17 +310,6 @@ CONTAINS
 
     CALL TimersStop( Timer_Collisions_Permute )
 
-!     PRINT*, "--- before update ---"
-!     PRINT*, "OP_N = ", OP_N(:,1,1,1)
-! #if defined(THORNADO_OACC  )
-!     !$ACC UPDATE SELF( OP_N )
-! #endif
-!     PRINT*, "--- after update ---"
-!     PRINT*, "OP_N = ", OP_N(:,1,1,1)
-!     PRINT*, "--- opacity ---"
-!     PRINT*, "uOP = ", uOP(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-
-
 
     CALL TimersStart( Timer_Collisions_PrimitiveFluid )
 
@@ -419,24 +345,6 @@ CONTAINS
     END DO
 
     CALL TimersStop( Timer_Collisions_PrimitiveFluid )
-
-
-    PRINT*, "--- before solve, before update ---"
-    PRINT*, "CR_N = ", CR_N(:,1,1,1)
-    PRINT*, "PF_N = ", PF_N(:,1)
-    PRINT*, "GX_N = ", GX_N(:,1)
-    PRINT*, "OP_N = ", OP_N(:,1,1,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
-
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( CR_N, PF_N, GX_N, OP_N, dCR_N  )
-#endif
-    PRINT*, "--- before solve, after update ---"
-    PRINT*, "CR_N = ", CR_N(:,1,1,1)
-    PRINT*, "PF_N = ", PF_N(:,1)
-    PRINT*, "GX_N = ", GX_N(:,1)
-    PRINT*, "OP_N = ", OP_N(:,1,1,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
 
 
     CALL TimersStart( Timer_Collisions_Solve )
@@ -479,23 +387,6 @@ CONTAINS
     END DO
 
     CALL TimersStop( Timer_Collisions_Solve )
-
-    PRINT*, "--- after solve, before update ---"
-    PRINT*, "CR_N = ", CR_N(:,1,1,1)
-    PRINT*, "PF_N = ", PF_N(:,1)
-    PRINT*, "GX_N = ", GX_N(:,1)
-    PRINT*, "OP_N = ", OP_N(:,1,1,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
-
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( CR_N, PF_N, GX_N, OP_N, dCR_N  )
-#endif
-    PRINT*, "--- after solve, after update ---"
-    PRINT*, "CR_N = ", CR_N(:,1,1,1)
-    PRINT*, "PF_N = ", PF_N(:,1)
-    PRINT*, "GX_N = ", GX_N(:,1)
-    PRINT*, "OP_N = ", OP_N(:,1,1,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1,1)
 
     CALL TimersStart( Timer_Collisions_Permute )
 
@@ -544,23 +435,6 @@ CONTAINS
     END DO
 
     CALL TimersStop( Timer_Collisions_Permute )
-
-
-
-    PRINT*, "--- before update ---"
-    PRINT*, "dCR_N Bdry= ", dCR_N(:,1,1,1)
-    PRINT*, "dU_R Bdry= ", dU_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
-    PRINT*, "dU_R = ", dU_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
-
-#if defined(THORNADO_OACC  )
-    !$ACC UPDATE SELF( dCR_N, dU_R )
-#endif
-    PRINT*, "--- after update ---"
-    PRINT*, "dCR_N Bdry= ", dCR_N(:,1,1,1)
-    PRINT*, "dU_R Bdry= ", dU_R(1,iE_B0,iX_B0(1),iX_B0(2),iX_B0(3),:,1)
-    PRINT*, "dCR_N = ", dCR_N(:,1,1, 1 + nDOFX + nDOFX * nX(1) + nDOFX * nX(1) * nX(2))
-    PRINT*, "dU_R = ", dU_R(1,iE_B0,iX_B0(1)+1,iX_B0(2)+1,iX_B0(3)+1,:,1)
 
 
 #if   defined(THORNADO_OMP_OL)

@@ -105,21 +105,21 @@ PROGRAM ApplicationDriver
 
     CASE( 'SineWaveDiffusion' )
 
-      nX  = [ 4, 4, 4 ]
+      nX  = [ 8, 8, 8 ]
       xL  = [ - 3.0_DP, 0.0_DP, 0.0_DP ]
       xR  = [ + 3.0_DP, 1.0_DP, 1.0_DP ]
       bcX = [ 1, 1, 1 ]
 
-      nE  = 1
+      nE  = 16
       eL  = 0.0_DP
       eR  = 1.0_DP
       bcE = 1
 
-      nNodes = 3
+      nNodes = 2
 
       TimeSteppingScheme = 'IMEX_PDARS'
 
-      t_end   = 5.0d-2
+      t_end   = 1.0d-1
       iCycleD = 1
       iCycleW = 1
       maxCycles = 1000000
@@ -644,6 +644,7 @@ PROGRAM ApplicationDriver
 
       CALL ComputeFromConserved_TwoMoment &
              ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, uGF, uCF, uCR, uPR )
+
 
       CALL WriteFieldsHDF &
              ( Time = t, &
