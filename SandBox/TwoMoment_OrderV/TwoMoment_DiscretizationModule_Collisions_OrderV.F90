@@ -207,15 +207,15 @@ CONTAINS
     !$OMP PARALLEL DO SIMD COLLAPSE(2) &
     !$OMP PRIVATE( iX1, iX2, iX3, iNodeX )
 #endif
-    DO iN_X = 1, nX_G
     DO iGF  = 1, nGF
+    DO iN_X = 1, nX_G
 
       iX3    = MOD( (iN_X-1) / ( nDOFX * nX(1) * nX(2) ), nX(3) ) + iX_B0(3)
       iX2    = MOD( (iN_X-1) / ( nDOFX * nX(1)         ), nX(2) ) + iX_B0(2)
       iX1    = MOD( (iN_X-1) / ( nDOFX                 ), nX(1) ) + iX_B0(1)
       iNodeX = MOD( (iN_X-1)                            , nDOFX ) + 1
 
-      GX_N(iGF,iN_X) = GX(iNodeX,iX1,iX2,iX3,iGF)
+      GX_N(iN_X,iGF) = GX(iNodeX,iX1,iX2,iX3,iGF)
 
     END DO
     END DO
@@ -234,15 +234,15 @@ CONTAINS
     !$OMP PARALLEL DO SIMD COLLAPSE(2) &
     !$OMP PRIVATE( iX1, iX2, iX3, iNodeX )
 #endif
-    DO iN_X = 1, nX_G
     DO iCF  = 1, nCF
+    DO iN_X = 1, nX_G
 
       iX3    = MOD( (iN_X-1) / ( nDOFX * nX(1) * nX(2) ), nX(3) ) + iX_B0(3)
       iX2    = MOD( (iN_X-1) / ( nDOFX * nX(1)         ), nX(2) ) + iX_B0(2)
       iX1    = MOD( (iN_X-1) / ( nDOFX                 ), nX(1) ) + iX_B0(1)
       iNodeX = MOD( (iN_X-1)                            , nDOFX ) + 1
 
-      CF_N(iCF,iN_X) = U_F(iNodeX,iX1,iX2,iX3,iCF)
+      CF_N(iN_X,iCF) = U_F(iNodeX,iX1,iX2,iX3,iCF)
 
     END DO
     END DO
@@ -276,7 +276,7 @@ CONTAINS
 
       iNodeZ = iNodeE + ( iNodeX - 1 ) * nDOFE
 
-      CR_N(iCR,iS,iN_E,iN_X) = U_R(iNodeZ,iE,iX1,iX2,iX3,iCR,iS)
+      CR_N(iN_E,iN_X,iS,iCR) = U_R(iNodeZ,iE,iX1,iX2,iX3,iCR,iS)
 
     END DO
     END DO
@@ -312,7 +312,7 @@ CONTAINS
 
       iNodeZ = iNodeE + ( iNodeX - 1 ) * nDOFE
 
-      OP_N(iOP,iS,iN_E,iN_X) = uOP(iNodeZ,iE,iX1,iX2,iX3,iOP,iS)
+      OP_N(iN_E,iN_X,iS,iOP) = uOP(iNodeZ,iE,iX1,iX2,iX3,iOP,iS)
 
     END DO
     END DO
@@ -337,21 +337,21 @@ CONTAINS
     DO iN_X = 1, nX_G
 
       CALL ComputePrimitive_Euler_NonRelativistic &
-             ( CF_N(iCF_D       ,iN_X), &
-               CF_N(iCF_S1      ,iN_X), &
-               CF_N(iCF_S2      ,iN_X), &
-               CF_N(iCF_S3      ,iN_X), &
-               CF_N(iCF_E       ,iN_X), &
-               CF_N(iCF_Ne      ,iN_X), &
-               PF_N(iPF_D       ,iN_X), &
-               PF_N(iPF_V1      ,iN_X), &
-               PF_N(iPF_V2      ,iN_X), &
-               PF_N(iPF_V3      ,iN_X), &
-               PF_N(iPF_E       ,iN_X), &
-               PF_N(iPF_Ne      ,iN_X), &
-               GX_N(iGF_Gm_dd_11,iN_X), &
-               GX_N(iGF_Gm_dd_22,iN_X), &
-               GX_N(iGF_Gm_dd_33,iN_X) )
+             ( CF_N(iN_X,iCF_D ), &
+               CF_N(iN_X,iCF_S1), &
+               CF_N(iN_X,iCF_S2), &
+               CF_N(iN_X,iCF_S3), &
+               CF_N(iN_X,iCF_E ), &
+               CF_N(iN_X,iCF_Ne), &
+               PF_N(iN_X,iPF_D ), &
+               PF_N(iN_X,iPF_V1), &
+               PF_N(iN_X,iPF_V2), &
+               PF_N(iN_X,iPF_V3), &
+               PF_N(iN_X,iPF_E ), &
+               PF_N(iN_X,iPF_Ne), &
+               GX_N(iN_X,iGF_Gm_dd_11), &
+               GX_N(iN_X,iGF_Gm_dd_22), &
+               GX_N(iN_X,iGF_Gm_dd_33) )
 
     END DO
 
@@ -361,37 +361,37 @@ CONTAINS
     CALL TimersStart( Timer_Collisions_Solve )
 
 
-#if   defined( THORNADO_OMP_OL )
-    !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO SIMD COLLAPSE(3)
-#elif defined( THORNADO_OACC   )
-    !$ACC PARALLEL LOOP GANG VECTOR COLLAPSE(3) &
-    !$ACC PRESENT( CR_N, PF_N, GX_N, OP_N, dCR_N )
-#elif defined( THORNADO_OMP    )
-    !$OMP PARALLEL DO SIMD COLLAPSE(3)
-#endif
+! #if   defined( THORNADO_OMP_OL )
+!     !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO SIMD COLLAPSE(3)
+! #elif defined( THORNADO_OACC   )
+!     !$ACC PARALLEL LOOP GANG VECTOR COLLAPSE(3) &
+!     !$ACC PRESENT( CR_N, PF_N, GX_N, OP_N, dCR_N )
+! #elif defined( THORNADO_OMP    )
+!     !$OMP PARALLEL DO SIMD COLLAPSE(3)
+! #endif
     ! DO iN_X = 1, nX_G
     ! DO iN_E = 1, nE_G
     ! DO iS   = 1, nSpecies
     !
     !   CALL ComputeIncrement_FixedPoint_Richardson &
     !          ( dt, &
-    !            CR_N (iCR_N       ,iS,iN_E,iN_X), &
-    !            CR_N (iCR_G1      ,iS,iN_E,iN_X), &
-    !            CR_N (iCR_G2      ,iS,iN_E,iN_X), &
-    !            CR_N (iCR_G3      ,iS,iN_E,iN_X), &
-    !            PF_N (iPF_V1              ,iN_X), &
-    !            PF_N (iPF_V2              ,iN_X), &
-    !            PF_N (iPF_V3              ,iN_X), &
-    !            GX_N (iGF_Gm_dd_11        ,iN_X), &
-    !            GX_N (iGF_Gm_dd_22        ,iN_X), &
-    !            GX_N (iGF_Gm_dd_33        ,iN_X), &
-    !            OP_N (iOP_D0      ,iS,iN_E,iN_X), &
-    !            OP_N (iOP_Chi     ,iS,iN_E,iN_X), &
-    !            OP_N (iOP_Sigma   ,iS,iN_E,iN_X), &
-    !            dCR_N(iCR_N       ,iS,iN_E,iN_X), &
-    !            dCR_N(iCR_G1      ,iS,iN_E,iN_X), &
-    !            dCR_N(iCR_G2      ,iS,iN_E,iN_X), &
-    !            dCR_N(iCR_G3      ,iS,iN_E,iN_X) )
+    !            CR_N (iN_E,iN_X,iS,iCR_N  ), &
+    !            CR_N (iN_E,iN_X,iS,iCR_G1 ), &
+    !            CR_N (iN_E,iN_X,iS,iCR_G2 ), &
+    !            CR_N (iN_E,iN_X,iS,iCR_G3 ), &
+    !            PF_N(iN_X,iPF_V1), &
+    !            PF_N(iN_X,iPF_V2), &
+    !            PF_N(iN_X,iPF_V3), &
+    !            GX_N(iN_X,iGF_Gm_dd_11), &
+    !            GX_N(iN_X,iGF_Gm_dd_22), &
+    !            GX_N(iN_X,iGF_Gm_dd_33), &
+    !            OP_N (iN_E,iN_X,iS,iOP_D0    ), &
+    !            OP_N (iN_E,iN_X,iS,iOP_Chi   ), &
+    !            OP_N (iN_E,iN_X,iS,iOP_Sigma ), &
+    !            dCR_N(iN_E,iN_X,iS,iCR_N     ), &
+    !            dCR_N(iN_E,iN_X,iS,iCR_G1    ), &
+    !            dCR_N(iN_E,iN_X,iS,iCR_G2    ), &
+    !            dCR_N(iN_E,iN_X,iS,iCR_G3    ) )
     !
     ! END DO
     ! END DO
@@ -400,8 +400,8 @@ CONTAINS
 
     CALL ComputeIncrement_FixedPoint_Vector_Richardson &
            ( dt, N_PTR, G1_PTR, G2_PTR, G3_PTR, &
-             PF_N(iPF_V1,:), PF_N(iPF_V2,:), PF_N(iPF_V3,:), &
-             GX_N(iGF_Gm_dd_11,:), GX_N(iGF_Gm_dd_22,:), GX_N(iGF_Gm_dd_33,:), &
+             PF_N(:,iPF_V1), PF_N(:,iPF_V2), PF_N(:,iPF_V3), &
+             GX_N(:,iGF_Gm_dd_11), GX_N(:,iGF_Gm_dd_22), GX_N(:,iGF_Gm_dd_33), &
              D0_PTR, Chi_PTR, Sigma_PTR, &
              dN_PTR, dG1_PTR, dG2_PTR, dG3_PTR, &
              PositionIndexZ, nIterations_Simple)
@@ -429,8 +429,7 @@ CONTAINS
     DO iX2 = iX_B0(2), iX_E0(2)
     DO iX1 = iX_B0(1), iX_E0(1)
     DO iE  = iE_B0, iE_E0
-
-      DO iNodeZ = 1, nDOFZ
+    DO iNodeZ = 1, nDOFZ
 
         iNodeX = MOD( (iNodeZ-1) / nDOFE, nDOFX ) + 1
         iNodeE = MOD( (iNodeZ-1)        , nDOFE ) + 1
@@ -443,10 +442,9 @@ CONTAINS
         iN_E = iNodeE &
                  + (iE-iE_B0) * nDOFE
 
-        dU_R(iNodeZ,iE,iX1,iX2,iX3,iCR,iS) = dCR_N(iCR,iS,iN_E,iN_X)
+        dU_R(iNodeZ,iE,iX1,iX2,iX3,iCR,iS) = dCR_N(iN_E,iN_X,iS,iCR)
 
-      END DO
-
+    END DO
     END DO
     END DO
     END DO
@@ -1113,8 +1111,9 @@ CONTAINS
           I_u_2(iZ) = GVECm(iPR_I2,iZ) / Gm_dd_22(iX)
           I_u_3(iZ) = GVECm(iPR_I3,iZ) / Gm_dd_33(iX)
 
-          CONVERGED = SQRT( SUM( FVECm(:,iZ)**2 ) ) <= &
-                                 Rtol * SQRT( SUM( CVEC(:,iZ)**2 ) )
+          ! CONVERGED = SQRT( SUM( FVECm(:,iZ)**2 ) ) <= &
+          !                        Rtol * SQRT( SUM( CVEC(:,iZ)**2 ) )
+          CONVERGED = ALL( ABS( FVECm(:,iZ) ) <= Rtol * ABS( CVEC(:,iZ )) )
 
           IF ( CONVERGED ) THEN
             ITERATE(iZ) = .FALSE.
@@ -1166,7 +1165,7 @@ CONTAINS
 #elif defined(THORNADO_OACC)
     !$ACC PARALLEL LOOP GANG VECTOR ASYNC &
     !$ACC PRESENT( dN, dG_d_1, dG_d_2, dG_d_3, &
-    !$ACC          GVECm, D0, Chi, Kappa )
+    !$ACC          GVECm, D_0, Chi, Kappa )
 #elif defined(THORNADO_OMP)
     !$OMP PARALLEL DO
 #endif
@@ -1604,39 +1603,43 @@ CONTAINS
     nE_G = nDOFE * nE
     nX_G = nDOFX * PRODUCT( nX )
 
-    ALLOCATE( GX_N(nGF,nX_G) )
-    ALLOCATE( PF_N(nPF,nX_G) )
-    ALLOCATE( CF_N(nCF,nX_G) )
-    ALLOCATE( CR_N (nCR,nSpecies,nE_G,nX_G) )
-    ALLOCATE( dCR_N(nCR,nSpecies,nE_G,nX_G) )
-    ALLOCATE( OP_N (nOP,nSpecies,nE_G,nX_G) )
+    ALLOCATE( GX_N(nX_G,nGF) )
+    ALLOCATE( PF_N(nX_G,nPF) )
+    ALLOCATE( CF_N(nX_G,nCF) )
+    ALLOCATE( CR_N (nE_G,nX_G,nSpecies,nCR) )
+    ALLOCATE( dCR_N(nE_G,nX_G,nSpecies,nCR) )
+    ALLOCATE( OP_N (nE_G,nX_G,nSpecies,nOP) )
 
     nZ_G = nE_G * nX_G * nSpecies
 
     ALLOCATE( PositionIndexZ     (nZ_G) )
     ALLOCATE( nIterations_Simple (nZ_G) )
 
+    iZ = 0
     DO iS   = 1, nSpecies
-    DO iN_E = 1, nE_G
     DO iN_X = 1, nX_G
-        iZ = iN_X + (iN_E - 1) * nX_G + (iS - 1) * nX_G * nE_G
-        PositionIndexZ(iZ) = iN_X
+    DO iN_E = 1, nE_G
+
+      iZ = iZ + 1
+
+      PositionIndexZ(iZ) = iN_X
+
     END DO
     END DO
     END DO
 
 
-    N_PTR    (1:nZ_G) => CR_N  (iCR_N       ,:,:,:)
-    G1_PTR   (1:nZ_G) => CR_N  (iCR_G1      ,:,:,:)
-    G2_PTR   (1:nZ_G) => CR_N  (iCR_G2      ,:,:,:)
-    G3_PTR   (1:nZ_G) => CR_N  (iCR_G3      ,:,:,:)
-    D0_PTR   (1:nZ_G) => OP_N  (iOP_D0      ,:,:,:)
-    Chi_PTR  (1:nZ_G) => OP_N  (iOP_Chi     ,:,:,:)
-    Sigma_PTR(1:nZ_G) => OP_N  (iOP_Sigma   ,:,:,:)
-    dN_PTR   (1:nZ_G) => dCR_N (iCR_N       ,:,:,:)
-    dG1_PTR  (1:nZ_G) => dCR_N (iCR_G1      ,:,:,:)
-    dG2_PTR  (1:nZ_G) => dCR_N (iCR_G2      ,:,:,:)
-    dG3_PTR  (1:nZ_G) => dCR_N (iCR_G3      ,:,:,:)
+    N_PTR    (1:nZ_G) => CR_N  (:,:,:,iCR_N     )
+    G1_PTR   (1:nZ_G) => CR_N  (:,:,:,iCR_G1    )
+    G2_PTR   (1:nZ_G) => CR_N  (:,:,:,iCR_G2    )
+    G3_PTR   (1:nZ_G) => CR_N  (:,:,:,iCR_G3    )
+    D0_PTR   (1:nZ_G) => OP_N  (:,:,:,iOP_D0    )
+    Chi_PTR  (1:nZ_G) => OP_N  (:,:,:,iOP_Chi   )
+    Sigma_PTR(1:nZ_G) => OP_N  (:,:,:,iOP_Sigma )
+    dN_PTR   (1:nZ_G) => dCR_N (:,:,:,iCR_N     )
+    dG1_PTR  (1:nZ_G) => dCR_N (:,:,:,iCR_G1    )
+    dG2_PTR  (1:nZ_G) => dCR_N (:,:,:,iCR_G2    )
+    dG3_PTR  (1:nZ_G) => dCR_N (:,:,:,iCR_G3    )
 
 #if   defined(THORNADO_OMP_OL)
     !$OMP TARGET ENTER DATA &
