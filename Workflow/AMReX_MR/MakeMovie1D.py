@@ -45,6 +45,8 @@ CoordinateSystem = 'cartesian'
 # Specify max level of refinement (-1 is MaxLevel)
 MaxLevel = -1
 
+PlotMesh = False
+
 Verbose = True
 
 UseCustomLimits = False
@@ -73,6 +75,10 @@ Data, DataUnit, X1, X2, X3, dX1, dX2, dX3, xL, xU, nX \
              CoordinateSystem, UsePhysicalUnits, \
              MaxLevel = MaxLevel, ReturnMesh = True )
 
+if not UseCustomLimits:
+    ymin = Data.min()
+    ymax = Data.max()
+
 nDims = 1
 if nX[1] > 1: nDims += 1
 if nX[2] > 1: nDims += 1
@@ -83,77 +89,61 @@ assert ( nDims == 1 ), \
 FileArray = GetFileArray( DataDirectory, PlotFileBaseName )
 #FileArray = FileArray[0:10]
 
-MakeDataFile( Field, DataDirectory, DataFileName, \
-              PlotFileBaseName, CoordinateSystem, FileArray, \
-              UsePhysicalUnits = UsePhysicalUnits, \
-              MaxLevel = MaxLevel )
-
-assert isfile( DataFileName ), \
-       'File: {:s} does not exist.'.format( DataFileName )
-
-f = open( DataFileName )
-header = f.readline()[16:-2]
-DataUnit = f.readline()[9:-1]
-DataShape = ( [ np.int64( dim ) for dim in header.split( ',' ) ] )
-
-if UsePhysicalUnits: nOS = 12
-else:                nOS = 7
-
-Time = list( [ np.float64( t ) for t in f.readline()[nOS:-2].split(' ') ] )
-Time = np.array( Time )
-
-Data = np.loadtxt( DataFileName ).reshape( DataShape )
-
 fig, ax = plt.subplots()
 
 ax.set_xlim( xL[0], xU[0] )
 
-if not UseCustomLimits:
-
-    ymin = Data.min()
-    ymax = Data.max()
-
-ax.set_ylim( ymin, ymax )
-
 ax.set_xlabel( 'X1' + ' ' + LengthUnit )
 ax.set_ylabel( Field + ' ' + DataUnit )
 
-Width     = xU[0] - xL[0]
-Height    = ymax - ymin
-time_text = plt.text( xL[0] + 0.5 * Width, ymin + 0.7 * Height, '' )
-
-for iX1 in range( X1.shape[0] ):
-    ax.axvline( X1[iX1] - 0.5 * dX1[iX1] )
+time_text = plt.text( 0.5, 0.7, '', transform = ax.transAxes )
 
 if( UseLogScale ): ax.set_yscale( 'log' )
 
-#IC,   = ax.plot([],[], color = 'red',   linewidth = 2 )
-#line, = ax.plot([],[], color = 'black', linewidth = 1 )
-
-IC,   = ax.plot([],[], 'r.' )
-line, = ax.plot([],[], 'k.' )
+IC,   = ax.plot( [],[], 'r.', label = 'D(0)' )
+line, = ax.plot( [],[], 'k.', label = 'D(t)' )
+if PlotMesh: mesh, = ax.plot( [],[], 'b.', label = 'mesh' )
 
 def f( t ):
-    return Data[t]
+
+    Data, DataUnit, X1, X2, X3, dX1, dX2, dX3, xL, xU, nX, Time \
+      = GetData( DataDirectory, PlotFileBaseName, Field, \
+                 CoordinateSystem, UsePhysicalUnits, \
+                 argv = [ 'a', FileArray[t] ], \
+                 MaxLevel = MaxLevel, ReturnMesh = True, ReturnTime = True )
+
+    return Data, X1, dX1, Time
 
 def InitializeFrame():
 
     IC.set_data([],[])
     line.set_data([],[])
+    if PlotMesh: mesh.set_data([],[])
     time_text.set_text('')
 
-    ret = ( line, time_text, IC )
+    if PlotMesh: ret = ( line, time_text, IC, mesh )
+    else:        ret = ( line, time_text, IC )
     return ret
 
 def UpdateFrame( t ):
 
-    IC.set_data( X1, f(0) )
-    y = Data[t]
-    line.set_data( X1, y )
-    time_text.set_text( 'time = {:.3e} {:}'.format( Time[t], TimeUnit ) )
+    Data, X1, dX1, Time = f( 0 )
+    IC.set_data( X1, Data )
 
-    ret = ( line, time_text, IC )
+    Data, X1, dX1, Time = f( t )
+    line.set_data( X1, Data )
+
+    if PlotMesh: mesh.set_data( X1 - 0.5 * dX1, np.ones( X1.shape[0] ) )
+
+    time_text.set_text( 'time = {:.3e} {:}'.format( Time, TimeUnit ) )
+
+    if PlotMesh: ret = ( line, time_text, IC, mesh )
+    else:        ret = ( line, time_text, IC )
+
     return ret
+
+ax.set_ylim( ymin, ymax )
+ax.legend()
 
 nFrames = FileArray.shape[0]
 
@@ -163,6 +153,7 @@ anim = animation.FuncAnimation( fig, UpdateFrame, \
                                 init_func = InitializeFrame, \
                                 frames = nFrames, \
                                 blit = True )
+
 
 anim.save( MovieName, fps = fps )
 
