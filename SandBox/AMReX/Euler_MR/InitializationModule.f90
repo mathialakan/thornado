@@ -234,11 +234,11 @@ CONTAINS
 
     CALL SetUnitsGeometryFields
 
-    CALL DescribeFluidFields_Conserved( amrex_parallel_ioprocessor() )
+    CALL DescribeFluidFields_Conserved ( amrex_parallel_ioprocessor() )
 
-    CALL DescribeFluidFields_Primitive( amrex_parallel_ioprocessor() )
+    CALL DescribeFluidFields_Primitive ( amrex_parallel_ioprocessor() )
 
-    CALL DescribeFluidFields_Auxiliary( amrex_parallel_ioprocessor() )
+    CALL DescribeFluidFields_Auxiliary ( amrex_parallel_ioprocessor() )
 
     CALL DescribeFluidFields_Diagnostic( amrex_parallel_ioprocessor() )
 
@@ -315,7 +315,7 @@ CONTAINS
     dt     = 0.0_DP
     t_new  = 0.0_DP
 
-    CALL InitializeTally_Euler_MF( SuppressTally_Option = .TRUE. )
+    CALL InitializeTally_Euler_MF
 
     IF( iRestart .LT. 0 )THEN
 
@@ -478,8 +478,6 @@ stop 'InitializationModule.f90'
 
     CALL FillPatch( iLevel, Time, MF_uGF, MF_uGF_tmp )
     CALL FillPatch( iLevel, Time, MF_uCF, MF_uCF_tmp )
-    CALL FillPatch( iLevel, Time, MF_uPF, MF_uPF_tmp )
-    CALL FillPatch( iLevel, Time, MF_uAF, MF_uAF_tmp )
     CALL FillPatch( iLevel, Time, MF_uDF, MF_uDF_tmp )
 
     CALL ClearLevel( iLevel )
@@ -562,55 +560,43 @@ stop 'InitializationModule.f90'
         CASE( 'Advection1D' )
 
           CALL TagElements_Advection1D &
-                 ( iLevel, BX % lo, BX % hi, &
-                   LBOUND( uCF ), UBOUND( uCF ), uCF, &
-                   TagCriteria(iLevel+1), &
-                   SetTag, ClearTag, &
+                 ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
+                   uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
                    LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
 
         CASE( 'RiemannProblem1D' )
 
           CALL TagElements_RiemannProblem1D &
-                 ( iLevel, BX % lo, BX % hi, &
-                   LBOUND( uCF ), UBOUND( uCF ), uCF, &
-                   TagCriteria(iLevel+1), &
-                   SetTag, ClearTag, &
+                 ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
+                   uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
                    LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
 
         CASE( 'Advection2D' )
 
           CALL TagElements_Advection2D &
-                 ( iLevel, BX % lo, BX % hi, &
-                   LBOUND( uCF ), UBOUND( uCF ), uCF, &
-                   TagCriteria(iLevel+1), &
-                   SetTag, ClearTag, &
+                 ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
+                   uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
                    LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
 
         CASE( 'KelvinHelmholtz2D' )
 
           CALL TagElements_KelvinHelmholtz2D &
-                 ( iLevel, BX % lo, BX % hi, &
-                   LBOUND( uCF ), UBOUND( uCF ), uCF, &
-                   TagCriteria(iLevel+1), &
-                   SetTag, ClearTag, &
+                 ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
+                   uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
                    LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
 
         CASE( 'Advection3D' )
 
           CALL TagElements_Advection3D &
-                 ( iLevel, BX % lo, BX % hi, &
-                   LBOUND( uCF ), UBOUND( uCF ), uCF, &
-                   TagCriteria(iLevel+1), &
-                   SetTag, ClearTag, &
+                 ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
+                   uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
                    LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
 
         CASE DEFAULT
 
           CALL TagElements_uCF &
-                 ( iLevel, BX % lo, BX % hi, &
-                   LBOUND( uCF ), UBOUND( uCF ), uCF, &
-                   TagCriteria(iLevel+1), &
-                   SetTag, ClearTag, &
+                 ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
+                   uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
                    LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
 
       END SELECT
