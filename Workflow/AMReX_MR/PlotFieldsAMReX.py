@@ -45,7 +45,7 @@ FigTitle = ProblemName
 DataDirectory = THORNADO_DIR + 'SandBox/AMReX/'
 
 # Specify plot file base name
-PlotFileBaseName = 'plt'
+PlotFileBaseName = ProblemName + '.plt'
 
 # Specify field to plot
 Field = 'PF_D'
@@ -88,25 +88,25 @@ if( UsePhysicalUnits ):
     TimeUnit = 'ms'
     LengthUnit = 'km'
 
-Data0, DataUnit0, X10, X20, X30, dX10, dX20, dX30, xL0, xU0, nX0, Time0 \
-  = GetData( DataDirectory, PlotFileBaseName, Field, \
-             CoordinateSystem, UsePhysicalUnits, argv = ['l','0'], \
-             MaxLevel = MaxLevel, \
-             ReturnTime = True, ReturnMesh = True )
+#Data0, DataUnit0, X10, X20, X30, dX10, dX20, dX30, xL0, xU0, nX0, Time0 \
+#  = GetData( DataDirectory, PlotFileBaseName, Field, \
+#             CoordinateSystem, UsePhysicalUnits, argv = ['l','0'], \
+#             MaxLevel = MaxLevel, \
+#             ReturnTime = True, ReturnMesh = True, Verbose = True )
 
 Data, DataUnit, X1, X2, X3, dX1, dX2, dX3, xL, xU, nX, Time \
   = GetData( DataDirectory, PlotFileBaseName, Field, \
              CoordinateSystem, UsePhysicalUnits, argv = argv, \
              MaxLevel = MaxLevel, \
-             ReturnTime = True, ReturnMesh = True )
+             ReturnTime = True, ReturnMesh = True, Verbose = True )
 
 nDims = 1
-if nX0[1] > 1: nDims += 1
-if nX0[2] > 1: nDims += 1
+if nX[1] > 1: nDims += 1
+if nX[2] > 1: nDims += 1
 
 if nDims == 1:
 
-    plt.plot( X10, Data0, 'r.' )
+#    plt.plot( X10, Data0, 'r.' )
     plt.plot( X1, Data, 'k.' )
     if( UseLogScale ): plt.yscale( 'log' )
     plt.xlim( xL[0], xU[0] )

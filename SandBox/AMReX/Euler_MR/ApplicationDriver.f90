@@ -32,10 +32,14 @@ PROGRAM ApplicationDriver
     ComputeTimeStep_Euler_MF, &
     ComputeFromConserved_Euler_MF
   USE InputOutputModuleAMReX, ONLY: &
-    WriteFieldsAMReX_PlotFile
+    WriteFieldsAMReX_PlotFile, &
+    WriteFieldsAMReX_Checkpoint
+  USE MF_Euler_TallyModule, ONLY: &
+    ComputeTally_Euler_MF
   USE MF_TimeSteppingModule_SSPRK, ONLY: &
     UpdateFluid_SSPRK_MF
   USE InputParsingModule, ONLY: &
+    nLevels, &
     StepNo, &
     t_end, &
     t_new, &
@@ -45,6 +49,8 @@ PROGRAM ApplicationDriver
     iCycleD, &
     iCycleW, &
     iCycleChk, &
+    t_wrt, &
+    t_chk, &
     dt_wrt, &
     dt_chk
   USE MF_Euler_TimersModule, ONLY: &
@@ -59,7 +65,6 @@ PROGRAM ApplicationDriver
   INCLUDE 'mpif.h'
 
   LOGICAL  :: wrt, chk
-  REAL(DP) :: t_wrt, t_chk
   REAL(DP) :: Timer_Evolution
 
   TimeIt_AMReX_Euler = .TRUE.
@@ -68,9 +73,6 @@ PROGRAM ApplicationDriver
 
   wrt = .FALSE.
   chk = .FALSE.
-
-  t_wrt = dt_wrt
-  t_chk = dt_chk
 
   CALL InitializeProgram
 
@@ -103,8 +105,6 @@ PROGRAM ApplicationDriver
 
     CALL UpdateFluid_SSPRK_MF( t_new, dt, MF_uGF, MF_uCF, MF_uDF )
 
-    CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
-
     IF( amrex_parallel_ioprocessor() )THEN
 
       IF( MOD( StepNo(0), iCycleD ) .EQ. 0 )THEN
@@ -119,50 +119,29 @@ PROGRAM ApplicationDriver
 
     END IF
 
-    IF( iCycleChk .GT. 0 )THEN
+    CALL WritePlotFile
+    CALL WriteCheckpointFile
 
-      IF( MOD( StepNo(0), iCycleChk ) .EQ. 0 ) &
-        chk = .TRUE.
+  END DO
 
-    ELSE
+  ! --- END of evolution ---
 
-      IF( ALL( t_new + dt .GT. t_chk ) )THEN
+  IF( amrex_parallel_ioprocessor() )THEN
 
-        t_chk = t_chk + dt_chk
-        chk   = .TRUE.
+    WRITE(*,*)
+    WRITE(*,'(2x,A,ES13.6E3,A)') &
+      'Total evolution time: ', MPI_WTIME() - Timer_Evolution, ' s'
 
-      END IF
+  END IF
 
-    END IF
+  StepNo = StepNo + 1
 
-    CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
+  CALL FinalizeProgram
 
-!!$    IF( chk )THEN
-!!$
-!!$      CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
-!!$
-!!$      CALL ComputeFromConserved_Euler_MF &
-!!$             ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
-!!$
-!!$      CALL WriteFieldsAMReX_Checkpoint &
-!!$             ( StepNo, nLevels, dt, t, &
-!!$               MF_uGF % BA % P, &
-!!$               MF_uGF % P, &
-!!$               MF_uCF % P )
-!!$
-!!$      CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
-!!$
-!!$      CALL FinalizeTimers_Euler &
-!!$             ( Verbose_Option = amrex_parallel_ioprocessor(), &
-!!$               SuppressApplicationDriver_Option = .TRUE., &
-!!$               WriteAtIntermediateTime_Option = .TRUE. )
-!!$
-!!$      CALL FinalizeTimers_AMReX_Euler &
-!!$             ( WriteAtIntermediateTime_Option = .TRUE. )
-!!$
-!!$      chk = .FALSE.
-!!$
-!!$    END IF
+CONTAINS
+
+
+  SUBROUTINE WritePlotFile
 
     CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
 
@@ -195,26 +174,64 @@ PROGRAM ApplicationDriver
                MF_uAF_Option = MF_uAF, &
                MF_uDF_Option = MF_uDF )
 
+      CALL ComputeTally_Euler_MF &
+             ( t_new, MF_uGF, MF_uCF, Verbose_Option = .TRUE. )
+
       wrt = .FALSE.
 
     END IF
 
     CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
 
-  END DO
+  END SUBROUTINE WritePlotFile
 
-  ! --- END of evolution ---
 
-  IF( amrex_parallel_ioprocessor() )THEN
+  SUBROUTINE WriteCheckpointFile
 
-    WRITE(*,*)
-    WRITE(*,'(2x,A,ES13.6E3,A)') &
-      'Total evolution time: ', MPI_WTIME() - Timer_Evolution, ' s'
+    CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
 
-  END IF
+    IF( iCycleChk .GT. 0 )THEN
 
-  StepNo = StepNo + 1
+      IF( MOD( StepNo(0), iCycleChk ) .EQ. 0 ) &
+        chk = .TRUE.
 
-  CALL FinalizeProgram
+    ELSE
+
+      IF( ALL( t_new + dt .GT. t_chk ) )THEN
+
+        t_chk = t_chk + dt_chk
+        chk   = .TRUE.
+
+      END IF
+
+    END IF
+
+    IF( chk )THEN
+
+      CALL ComputeFromConserved_Euler_MF &
+             ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
+
+      CALL WriteFieldsAMReX_Checkpoint &
+             ( StepNo, nLevels, dt, t_new, &
+               MF_uGF % BA % P, &
+               MF_uGF % P, &
+               MF_uCF % P )
+
+      CALL FinalizeTimers_Euler &
+             !( Verbose_Option = amrex_parallel_ioprocessor(), &
+             ( Verbose_Option = .FALSE., &
+               SuppressApplicationDriver_Option = .TRUE., &
+               WriteAtIntermediateTime_Option = .FALSE. )
+
+      CALL FinalizeTimers_AMReX_Euler &
+             ( WriteAtIntermediateTime_Option = .FALSE. )
+
+      chk = .FALSE.
+
+    END IF
+
+    CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
+
+  END SUBROUTINE WriteCheckpointFile
 
 END PROGRAM ApplicationDriver

@@ -13,6 +13,14 @@ MODULE InputOutputModuleAMReX
     amrex_string_build
   USE amrex_box_module, ONLY: &
     amrex_box
+  USE amrex_boxarray_module, ONLY: &
+    amrex_boxarray, &
+    amrex_boxarray_build, &
+    amrex_boxarray_destroy
+  USE amrex_distromap_module,  ONLY: &
+    amrex_distromap,       &
+    amrex_distromap_build, &
+    amrex_distromap_destroy
   USE amrex_multifab_module, ONLY: &
     amrex_multifab, &
     amrex_multifab_build, &
@@ -30,6 +38,8 @@ MODULE InputOutputModuleAMReX
   USE amrex_parallel_module, ONLY: &
     amrex_parallel_ioprocessor, &
     amrex_parallel_myproc
+  USE amrex_fluxregister_module, ONLY: &
+    amrex_fluxregister_build
   USE amrex_amr_module, ONLY: &
     amrex_geom
 
@@ -38,21 +48,27 @@ MODULE InputOutputModuleAMReX
   USE ProgramHeaderModule, ONLY: &
     nDOFX
   USE ReferenceElementModuleX, ONLY: &
-    WeightsX_q
+    WeightsX_q, &
+    nDOFX_X1
   USE MeshModule, ONLY: &
     MeshX
   USE GeometryFieldsModule, ONLY: &
     ShortNamesGF, &
+    unitsGF, &
     nGF, &
     iGF_SqrtGm
   USE FluidFieldsModule, ONLY: &
     ShortNamesCF, &
+    unitsCF, &
     nCF, &
     ShortNamesPF, &
+    unitsPF, &
     nPF, &
     ShortNamesAF, &
+    unitsAF, &
     nAF, &
     ShortNamesDF, &
+    unitsDF, &
     nDF
   USE UnitsModule, ONLY: &
     UnitsDisplay
@@ -65,6 +81,8 @@ MODULE InputOutputModuleAMReX
   USE MF_MeshModule, ONLY: &
     CreateMesh_MF, &
     DestroyMesh_MF
+  USE FillPatchModule, ONLY: &
+    FillPatch
   USE InputParsingModule, ONLY: &
     nLevels, &
     MaxGridSizeX, &
@@ -74,12 +92,84 @@ MODULE InputOutputModuleAMReX
     t_new, &
     PlotFileBaseName, &
     nX, &
-    UseTiling
+    iRestart, &
+    UseTiling, &
+    do_reflux
 
   IMPLICIT NONE
   PRIVATE
 
+  PUBLIC :: ReadCheckpointFile
+  PUBLIC :: WriteFieldsAMReX_Checkpoint
   PUBLIC :: WriteFieldsAMReX_PlotFile
+
+  INTERFACE
+
+    SUBROUTINE WriteFieldsAMReX_Checkpoint &
+                 ( StepNo, nLevels, dt, time, pBA, &
+                   pMF_uGF, pMF_uCF ) BIND(c)
+       IMPORT
+       IMPLICIT NONE
+       INTEGER(c_int), INTENT(in) :: StepNo(*)
+       INTEGER(c_int), VALUE      :: nLevels
+       REAL(DP),       INTENT(in) :: dt(*), time(*)
+       TYPE(c_ptr),    INTENT(in) :: pBA(*)
+       TYPE(c_ptr),    INTENT(in) :: pMF_uGF(*)
+       TYPE(c_ptr),    INTENT(in) :: pMF_uCF(*)
+    END SUBROUTINE WriteFieldsAMReX_Checkpoint
+
+    SUBROUTINE ReadHeaderAndBoxArrayData &
+                 ( FinestLevel, StepNo, dt, time, &
+                   pBA, pDM, iChkFile ) BIND(c)
+      IMPORT
+      IMPLICIT NONE
+      INTEGER(c_int), INTENT(out) :: FinestLevel
+      INTEGER(c_int), INTENT(out) :: StepNo(*)
+      REAL(DP),       INTENT(out) :: dt(*), time(*)
+      TYPE(c_ptr),    INTENT(out) :: pBA(*), pDM(*)
+      INTEGER(c_int), VALUE       :: iChkFile
+    END SUBROUTINE ReadHeaderAndBoxArrayData
+
+    SUBROUTINE ReadMultiFabData( FinestLevel, pMF, iMF, iChkFile ) BIND(c)
+      IMPORT
+      IMPLICIT NONE
+      INTEGER(c_int), VALUE       :: FinestLevel
+      TYPE(c_ptr),    INTENT(out) :: pMF(*)
+      INTEGER(c_int), VALUE       :: iMF
+      INTEGER(c_int), VALUE       :: iChkFile
+    END SUBROUTINE ReadMultiFabData
+
+    SUBROUTINE amrex_fi_set_boxarray( iLevel, pBA, amrcore ) BIND(c)
+      IMPORT
+      IMPLICIT NONE
+      TYPE(c_ptr),    VALUE :: pBA
+      INTEGER(c_int), VALUE :: iLevel
+      TYPE(c_ptr),    VALUE :: amrcore
+    END SUBROUTINE amrex_fi_set_boxarray
+
+    SUBROUTINE amrex_fi_set_distromap  (lev, pdm, amrcore) BIND(c)
+      IMPORT
+      IMPLICIT NONE
+      TYPE(c_ptr),    VALUE :: pdm
+      INTEGER(c_int), VALUE :: lev
+      TYPE(c_ptr),    VALUE :: amrcore
+    END SUBROUTINE amrex_fi_set_distromap
+
+    SUBROUTINE amrex_fi_clone_boxarray (bao, bai) BIND(c)
+      IMPORT
+      IMPLICIT NONE
+      TYPE(c_ptr)        :: bao
+      TYPE(c_ptr), VALUE :: bai
+    END SUBROUTINE amrex_fi_clone_boxarray
+
+    SUBROUTINE amrex_fi_set_finest_level (lev, amrcore) BIND(c)
+      IMPORT
+      IMPLICIT NONE
+      INTEGER(c_int), VALUE :: lev
+      TYPE(c_ptr),    VALUE :: amrcore
+    END SUBROUTINE amrex_fi_set_finest_level
+
+  END INTERFACE
 
 CONTAINS
 
@@ -156,17 +246,16 @@ CONTAINS
 
     END IF
 
-    IF( amrex_parallel_ioprocessor() )THEN
-
-      WRITE(*,*)
-      WRITE(*,'(6x,A,I8.8)') 'Writing PlotFile: ', StepNo(0)
-      WRITE(*,*)
-
-    END IF
-
     WRITE(NumberString,'(I8.8)') StepNo(0)
 
     PlotFileName = TRIM( PlotFileBaseName ) // '_' // NumberString
+
+    IF( amrex_parallel_ioprocessor() )THEN
+
+      WRITE(*,*)
+      WRITE(*,'(6x,A,A)') 'Writing PlotFile ', PlotFileName
+
+    END IF
 
     ALLOCATE( VarNames(nF) )
 
@@ -327,6 +416,117 @@ CONTAINS
   END SUBROUTINE WriteFieldsAMReX_PlotFile
 
 
+  SUBROUTINE ReadCheckpointFile
+
+    USE MF_FieldsModule, ONLY: &
+      MF_uGF, &
+      MF_uCF, &
+      MF_uPF, &
+      MF_uAF, &
+      MF_uDF, &
+      FluxRegister
+
+    IMPLICIT NONE
+
+    INTEGER     :: iLevel, FinestLevel
+    TYPE(c_ptr) :: pBA(0:nLevels-1)
+    TYPE(c_ptr) :: pDM(0:nLevels-1)
+    TYPE(c_ptr) :: pGF(0:nLevels-1)
+    TYPE(c_ptr) :: pCF(0:nLevels-1)
+    TYPE(c_ptr) :: amrcore
+
+    TYPE(amrex_box)       :: BX
+    TYPE(amrex_distromap) :: DM  (0:nLevels-1)
+    TYPE(amrex_boxarray)  :: BA  (0:nLevels-1)
+    TYPE(amrex_geometry)  :: GEOM(0:nLevels-1)
+
+    amrcore = amrex_get_amrcore()
+
+    BX = amrex_box( [ 0, 0, 0 ], [ nX(1)-1, nX(2)-1, nX(3)-1 ] )
+
+    DO iLevel = 0, nLevels-1
+
+      CALL amrex_boxarray_build ( BA(iLevel), BX )
+
+      CALL BA(iLevel) % maxSize( MaxGridSizeX )
+
+      CALL amrex_geometry_build( GEOM(iLevel), BX )
+
+      CALL amrex_distromap_build( DM(iLevel), BA(iLevel) )
+
+    END DO
+
+    pBA(0:nLevels-1) = BA(0:nLevels-1) % P
+    pDM(0:nLevels-1) = DM(0:nLevels-1) % P
+
+    FinestLevel = nLevels-1
+
+    CALL ReadHeaderAndBoxArrayData &
+           ( FinestLevel, StepNo, dt, t_new, pBA, pDM, iRestart )
+
+    DO iLevel = 0, nLevels-1
+
+      BA(iLevel) = pBA(iLevel)
+      DM(iLevel) = pDM(iLevel)
+
+    END DO
+
+    DO iLevel = 0, nLevels-1
+
+      CALL amrex_fi_set_boxarray ( iLevel, BA(iLevel) % P, amrcore )
+      CALL amrex_fi_set_distromap( iLevel, DM(iLevel) % P, amrcore )
+
+    END DO
+
+    DO iLevel = 0, nLevels-1
+
+      CALL amrex_multifab_build &
+             ( MF_uGF(iLevel), BA(iLevel), DM(iLevel), nDOFX * nGF, swX )
+
+      CALL amrex_multifab_build &
+             ( MF_uCF(iLevel), BA(iLevel), DM(iLevel), nDOFX * nCF, swX )
+
+      CALL amrex_multifab_build &
+             ( MF_uPF(iLevel), BA(iLevel), DM(iLevel), nDOFX * nPF, swX )
+      CALL MF_uPF(iLevel) % SetVal( Zero )
+
+      CALL amrex_multifab_build &
+             ( MF_uAF(iLevel), BA(iLevel), DM(iLevel), nDOFX * nAF, swX )
+      CALL MF_uAF(iLevel) % SetVal( Zero )
+
+      CALL amrex_multifab_build &
+             ( MF_uDF(iLevel), BA(iLevel), DM(iLevel), nDOFX * nDF, swX )
+      CALL MF_uDF(iLevel) % SetVal( Zero )
+
+      ! Assume nDOFX_X2 = nDOFX_X3 = nDOFX_X1
+      IF( iLevel .GT. 0 .AND. do_reflux ) &
+        CALL amrex_fluxregister_build &
+               ( FluxRegister(iLevel), BA(iLevel), DM(iLevel), &
+                 amrex_ref_ratio(iLevel-1), iLevel, nDOFX_X1*nCF )
+
+    END DO
+
+    pGF(0:nLevels-1) = MF_uGF(0:nLevels-1) % P
+    pCF(0:nLevels-1) = MF_uCF(0:nLevels-1) % P
+
+    CALL ReadMultiFabData( nLevels-1, pGF, 0, iRestart )
+    CALL ReadMultiFabData( nLevels-1, pCF, 1, iRestart )
+
+    DO iLevel = 0, nLevels-1
+
+      CALL FillPatch( iLevel, t_new(0), MF_uGF )
+      CALL FillPatch( iLevel, t_new(0), MF_uCF )
+
+    END DO
+
+    CALL amrex_fi_set_finest_level( nLevels-1, amrcore )
+
+  END SUBROUTINE ReadCheckpointFile
+
+
+  ! --- PRIVATE SUBROUTINES ---
+
+
   SUBROUTINE ComputeCellAverage_MF &
     ( nFd, MF_uGF, MF, iOS, Field, MF_plt )
 
@@ -382,11 +582,72 @@ CONTAINS
       END DO
       END DO
 
+      CALL ConvertUnits( Field, nFd, iOS, U_plt )
+
     END DO
 
     CALL amrex_mfiter_destroy( MFI )
 
   END SUBROUTINE ComputeCellAverage_MF
+
+
+  SUBROUTINE ConvertUnits( Field, nFd, iOS, U_plt )
+
+    CHARACTER(2), INTENT(in)    :: Field
+    INTEGER,      INTENT(in)    :: nFd, iOS
+    REAL(DP),     INTENT(inout) :: U_plt(:,:,:,:)
+
+    INTEGER :: iFd
+
+    SELECT CASE( Field )
+
+      CASE( 'GF' )
+
+        DO iFd = 1, nFd
+
+          U_plt(:,:,:,iFd+iOS) = U_plt(:,:,:,iFd+iOS) / unitsGF(iFd)
+
+        END DO
+
+      CASE( 'CF' )
+
+        DO iFd = 1, nFd
+
+          U_plt(:,:,:,iFd+iOS) = U_plt(:,:,:,iFd+iOS) / unitsCF(iFd)
+
+        END DO
+
+      CASE( 'PF' )
+
+        DO iFd = 1, nFd
+
+          U_plt(:,:,:,iFd+iOS) = U_plt(:,:,:,iFd+iOS) / unitsPF(iFd)
+
+        END DO
+
+      CASE( 'AF' )
+
+        DO iFd = 1, nFd
+
+          U_plt(:,:,:,iFd+iOS) = U_plt(:,:,:,iFd+iOS) / unitsAF(iFd)
+
+        END DO
+
+      CASE( 'DF' )
+
+        DO iFd = 1, nFd
+
+          U_plt(:,:,:,iFd+iOS) = U_plt(:,:,:,iFd+iOS) / unitsDF(iFd)
+
+        END DO
+
+      CASE DEFAULT
+
+        RETURN
+
+    END SELECT
+
+  END SUBROUTINE ConvertUnits
 
 
   SUBROUTINE WriteMPI( MF_uGF, MF_plt )

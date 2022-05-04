@@ -8,6 +8,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     amrex_multifab, &
     amrex_multifab_build, &
     amrex_multifab_destroy
+  USE amrex_amrcore_module, ONLY: &
+    amrex_regrid
 
   ! --- thornado Modules ---
 
@@ -25,10 +27,14 @@ MODULE MF_TimeSteppingModule_SSPRK
     Two
   USE MF_Euler_dgDiscretizationModule, ONLY: &
     ComputeIncrement_Euler_MF
+  USE MF_Euler_TallyModule, ONLY: &
+    IncrementOffGridTally_Euler_MF
   USE MF_Euler_SlopeLimiterModule, ONLY: &
     ApplySlopeLimiter_Euler_MF
   USE MF_Euler_PositivityLimiterModule, ONLY: &
     ApplyPositivityLimiter_Euler_MF
+  USE MF_FieldsModule, ONLY: &
+    MF_OffGridFlux_Euler
   USE InputParsingModule, ONLY: &
     nLevels, &
     swX, &
@@ -36,12 +42,12 @@ MODULE MF_TimeSteppingModule_SSPRK
     nNodes, &
     nStages, &
     do_reflux
-  USE FillPatchModule, ONLY: &
-    FillPatch
+!!$  USE FillPatchModule, ONLY: &
+!!$    FillPatch
   USE RefluxModule_Euler, ONLY: &
     Reflux_Euler_MF
-  USE MF_UtilitiesModule, ONLY: &
-    MultiplyWithMetric
+!!$  USE MF_UtilitiesModule, ONLY: &
+!!$    MultiplyWithMetric
   USE MF_Euler_TimersModule, ONLY: &
     TimersStart_AMReX_Euler, &
     TimersStop_AMReX_Euler, &
@@ -80,6 +86,10 @@ CONTAINS
     IF( Verbose )THEN
 
       WRITE(*,*)
+      WRITE(*,'(A)') &
+        '    INFO: Timestepper'
+      WRITE(*,'(A)') &
+        '    -----------------'
       WRITE(*,'(A5,A,I1)') '', 'SSP RK Scheme: ', nStages
       WRITE(*,'(A5,A,ES10.3E3)') '', 'CFL:           ', &
         CFL * ( DBLE( amrex_spacedim ) * ( Two * DBLE( nNodes ) - One ) )
@@ -120,7 +130,18 @@ CONTAINS
     INTEGER :: iS, jS, nComp
     INTEGER :: iLevel
 
+    REAL(DP) :: dM_OffGrid_Euler(1:nCF,0:nLevels-1)
+
     CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_UpdateFluid )
+
+    DO iLevel = 0, nLevels-1
+
+      IF( iLevel .LT. nLevels-1 ) &
+        CALL amrex_regrid( iLevel, t(iLevel) )
+
+    END DO
+
+    dM_OffGrid_Euler = Zero
 
     nComp = nDOFX * nCF
 
@@ -132,26 +153,11 @@ CONTAINS
                ( MF_U(iS,iLevel), MF_uCF(iLevel) % BA, &
                  MF_uCF(iLevel) % DM, nComp, swX )
 
-        CALL MF_U(iS,iLevel) % SetVal( Zero )
-
         CALL amrex_multifab_build &
                ( MF_D(iS,iLevel), MF_uCF(iLevel) % BA, &
                  MF_uCF(iLevel) % DM, nComp, swX )
 
-        CALL MF_U(iS,iLevel) % COPY( MF_uCF(iLevel), 1, 1, nComp, 0 )
-
-        CALL MultiplyWithMetric( MF_uGF(iLevel), MF_U(iS,iLevel), nCF, +1 )
-
-        CALL FillPatch( iLevel, t(iLevel), MF_U(iS,:) )
-
-        CALL MultiplyWithMetric( MF_uGF(iLevel), MF_U(iS,iLevel), nCF, -1 )
-
-        IF( iLevel .GT. 0 )THEN
-
-          CALL MultiplyWithMetric &
-                 ( MF_uGF(iLevel-1), MF_U(iS,iLevel-1), nCF, -1 )
-
-        END IF
+        CALL MF_U(iS,iLevel) % COPY( MF_uCF(iLevel), 1, 1, nComp, swX )
 
       END DO ! iLevel
 
@@ -181,7 +187,15 @@ CONTAINS
         CALL ComputeIncrement_Euler_MF &
                ( t, MF_uGF, MF_U(iS,:), MF_uDF, MF_D(iS,:) )
 
-        CALL Reflux_Euler_MF( MF_uGF, MF_D(iS,:) )
+        DO iLevel = 0, nLevels-1
+
+          dM_OffGrid_Euler(:,iLevel) &
+            = dM_OffGrid_Euler(:,iLevel) &
+                + dt(iLevel) * w_SSPRK(iS) * MF_OffGridFlux_Euler(:,iLevel)
+
+        END DO
+
+        IF( do_reflux ) CALL Reflux_Euler_MF( MF_uGF, MF_D(iS,:) )
 
       END IF ! a(:,iS) .NE. Zero OR w(iS) .NE. Zero
 
@@ -214,6 +228,8 @@ CONTAINS
 
     CALL ApplySlopeLimiter_Euler_MF( t, MF_uGF, MF_uCF, MF_uDF )
     CALL ApplyPositivityLimiter_Euler_MF( MF_uGF, MF_uCF, MF_uDF )
+
+    CALL IncrementOffGridTally_Euler_MF( dM_OffGrid_Euler )
 
     CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_UpdateFluid )
 

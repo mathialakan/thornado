@@ -76,12 +76,13 @@ MODULE MF_InitializationModule_Relativistic_IDEAL
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: InitializeFields_Euler_MF
+  PUBLIC :: InitializeFields_Euler_Relativistic_IDEAL_MF
 
 CONTAINS
 
 
-  SUBROUTINE InitializeFields_Euler_MF( iLevel, MF_uGF, MF_uCF )
+  SUBROUTINE InitializeFields_Euler_Relativistic_IDEAL_MF &
+    ( iLevel, MF_uGF, MF_uCF )
 
     INTEGER,              INTENT(in) :: iLevel
     TYPE(amrex_multifab), INTENT(in) :: MF_uGF, MF_uCF
@@ -120,13 +121,15 @@ CONTAINS
       CASE DEFAULT
 
         CALL DescribeError_Euler_MF &
-               ( 01, Message_Option &
-                       = 'Invalid ProgramName: ' // TRIM( ProgramName ) )
+               ( 201, Message_Option &
+                        = 'Invalid ProgramName: ' // TRIM( ProgramName ) )
 
     END SELECT
 
-  END SUBROUTINE InitializeFields_Euler_MF
+  END SUBROUTINE InitializeFields_Euler_Relativistic_IDEAL_MF
 
+
+  ! --- PRIVATE SUBROUTINES ---
 
   SUBROUTINE InitializeFields_Advection1D( iLevel, MF_uGF, MF_uCF )
 
@@ -220,7 +223,10 @@ CONTAINS
 
       CASE DEFAULT
 
-        CALL DescribeError_Euler_MF( 99 )
+        CALL DescribeError_Euler_MF &
+               ( 202, Message_Option &
+                        = 'Invalid AdvectionProfile: ' &
+                            // TRIM( AdvectionProfile ) )
 
     END SELECT
 
@@ -450,7 +456,10 @@ CONTAINS
 
       CASE DEFAULT
 
-        CALL DescribeError_Euler_MF( 99 )
+        CALL DescribeError_Euler_MF &
+               ( 203, Message_Option &
+                        = 'Invalid RiemannProblemName: ' &
+                            // TRIM( RiemannProblemName ) )
 
     END SELECT
 
@@ -678,7 +687,10 @@ CONTAINS
 
       CASE DEFAULT
 
-        CALL DescribeError_Euler_MF( 99 )
+        CALL DescribeError_Euler_MF &
+               ( 204, Message_Option &
+                        = 'Invalid AdvectionProfile: ' &
+                            // TRIM( AdvectionProfile ) )
 
     END SELECT
 
@@ -1052,7 +1064,10 @@ CONTAINS
 
       CASE DEFAULT
 
-        CALL DescribeError_Euler_MF( 99 )
+        CALL DescribeError_Euler_MF &
+               ( 205, Message_Option &
+                        = 'Invalid AdvectionProfile: ' &
+                            // TRIM( AdvectionProfile ) )
 
     END SELECT
 
