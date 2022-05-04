@@ -103,7 +103,7 @@ PROGRAM ApplicationDriver
 
     END IF
 
-    CALL UpdateFluid_SSPRK_MF( t_new, dt, MF_uGF, MF_uCF, MF_uDF )
+    CALL UpdateFluid_SSPRK_MF
 
     IF( amrex_parallel_ioprocessor() )THEN
 
@@ -233,5 +233,6 @@ CONTAINS
     CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_InputOutput )
 
   END SUBROUTINE WriteCheckpointFile
+
 
 END PROGRAM ApplicationDriver
