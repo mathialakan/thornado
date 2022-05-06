@@ -38,6 +38,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     MF_uCF, &
     MF_uDF, &
     MF_OffGridFlux_Euler
+  USE MF_GeometryModule, ONLY: &
+    ApplyBoundaryConditions_Geometry_MF
   USE InputParsingModule, ONLY: &
     nLevels, &
     swX, &
@@ -134,6 +136,8 @@ CONTAINS
         CALL amrex_regrid( iLevel, t_new(iLevel) )
 
     END DO
+
+    CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
 
     dM_OffGrid_Euler = Zero
 
