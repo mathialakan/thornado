@@ -259,6 +259,8 @@ CONTAINS
 
     TYPE(EdgeMap) :: Edge_Map
 
+    TYPE(amrex_multifab) :: SqrtGm(iLevel-1:iLevel)
+
     UseXCFC = .FALSE.
     IF( PRESENT( UseXCFC_Option ) ) &
       UseXCFC = UseXCFC_Option
@@ -272,15 +274,25 @@ CONTAINS
 
     IF( nLevels .GT. 1 .AND. iLevel .GT. 0 )THEN
 
-      ! --- nGF must be LAST ---
+      CALL amrex_multifab_build &
+             ( SqrtGm(iLevel-1), MF_uGF(iLevel-1) % BA, &
+                                 MF_uGF(iLevel-1) % DM, nDOFX, swX )
+      CALL SqrtGm(iLevel-1) % COPY &
+             ( MF_uGF(iLevel-1), 1+nDOFX*(iGF_SqrtGm-1), 1, nDOFX, swX )
 
-      CALL MultiplyWithMetric( MF_uGF(iLevel), MF_uDF(iLevel), nDF, +1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel), MF_uCF(iLevel), nCF, +1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel), MF_uGF(iLevel), nGF, +1 )
+      CALL amrex_multifab_build &
+             ( SqrtGm(iLevel  ), MF_uGF(iLevel  ) % BA, &
+                                 MF_uGF(iLevel  ) % DM, nDOFX, swX )
+      CALL SqrtGm(iLevel  ) % COPY &
+             ( MF_uGF(iLevel  ), 1+nDOFX*(iGF_SqrtGm-1), 1, nDOFX, swX )
 
-      CALL MultiplyWithMetric( MF_uGF(iLevel-1), MF_uDF(iLevel-1), nDF, +1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel-1), MF_uCF(iLevel-1), nCF, +1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel-1), MF_uGF(iLevel-1), nGF, +1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uGF(iLevel-1), nGF, +1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uCF(iLevel-1), nCF, +1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uDF(iLevel-1), nDF, +1 )
+
+      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uGF(iLevel  ), nGF, +1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uCF(iLevel  ), nCF, +1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uDF(iLevel  ), nDF, +1 )
 
     END IF
 
@@ -290,15 +302,16 @@ CONTAINS
 
     IF( nLevels .GT. 1 .AND. iLevel .GT. 0 )THEN
 
-      ! --- nGF must be FIRST ---
+      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uGF(iLevel-1), nGF, -1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uCF(iLevel-1), nCF, -1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uDF(iLevel-1), nDF, -1 )
 
-      CALL MultiplyWithMetric( MF_uGF(iLevel), MF_uGF(iLevel), nGF, -1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel), MF_uCF(iLevel), nCF, -1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel), MF_uDF(iLevel), nDF, -1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uGF(iLevel  ), nGF, -1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uCF(iLevel  ), nCF, -1 )
+      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uDF(iLevel  ), nDF, -1 )
 
-      CALL MultiplyWithMetric( MF_uGF(iLevel-1), MF_uGF(iLevel-1), nGF, -1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel-1), MF_uCF(iLevel-1), nCF, -1 )
-      CALL MultiplyWithMetric( MF_uGF(iLevel-1), MF_uDF(iLevel-1), nDF, -1 )
+      CALL amrex_multifab_destroy( SqrtGm(iLevel-1) )
+      CALL amrex_multifab_destroy( SqrtGm(iLevel  ) )
 
     END IF
 
