@@ -36,7 +36,7 @@ def GetFileArray( PlotFileDataDirectory, PlotFileBaseName ):
 
         sFile = FileArray[iFile]
 
-        if( sFile[0:len(PlotFileBaseName)+1] == PlotFileBaseName + '_' \
+        if( sFile[0:len(PlotFileBaseName)] == PlotFileBaseName \
               and sFile[len(PlotFileBaseName)+1].isdigit() ):
             FileList.append( sFile )
 
@@ -69,7 +69,7 @@ def ChoosePlotFile \
 
         else:
 
-            File = PlotFileBaseName + '_{:}'.format( argv[1].zfill(8) )
+            File = PlotFileBaseName + '{:}'.format( argv[1].zfill(8) )
 
         FileArray = np.array( File )
 

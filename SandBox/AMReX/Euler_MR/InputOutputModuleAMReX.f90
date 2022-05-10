@@ -248,7 +248,7 @@ CONTAINS
 
     WRITE(NumberString,'(I8.8)') StepNo(0)
 
-    PlotFileName = TRIM( PlotFileBaseName ) // '_' // NumberString
+    PlotFileName = TRIM( PlotFileBaseName ) // NumberString
 
     IF( amrex_parallel_ioprocessor() )THEN
 

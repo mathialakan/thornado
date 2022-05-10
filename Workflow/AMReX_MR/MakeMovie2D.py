@@ -28,7 +28,7 @@ ID = 'KelvinHelmholtz2D'
 PlotFileDirectory \
   = THORNADO_DIR + 'SandBox/AMReX/Euler_Relativistic_IDEAL_MR/'
 
-# PlotFile base name (e.g., Advection2D.plt_######## -> Advection2D.plt )
+# PlotFile base name (e.g., Advection2D.plt######## -> Advection2D.plt )
 PlotFileBaseName = ID + '.plt'
 
 # Field to plot
