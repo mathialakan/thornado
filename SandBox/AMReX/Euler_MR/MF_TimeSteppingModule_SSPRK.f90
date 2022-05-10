@@ -48,7 +48,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     nStages, &
     do_reflux, &
     t_new, &
-    dt
+    dt, &
+    UseAMR
   USE RefluxModule_Euler, ONLY: &
     Reflux_Euler_MF
   USE MF_Euler_TimersModule, ONLY: &
@@ -130,14 +131,18 @@ CONTAINS
 
     CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_UpdateFluid )
 
-    DO iLevel = 0, nLevels-1
+    IF( UseAMR )THEN
 
-      IF( iLevel .LT. nLevels-1 ) &
-        CALL amrex_regrid( iLevel, t_new(iLevel) )
+      DO iLevel = 0, nLevels-1
 
-    END DO
+        IF( iLevel .LT. nLevels-1 ) &
+          CALL amrex_regrid( iLevel, t_new(iLevel) )
 
-    CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
+      END DO
+
+      CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
+
+    END IF
 
     dM_OffGrid_Euler = Zero
 
