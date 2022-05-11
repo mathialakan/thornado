@@ -84,12 +84,18 @@ MakeDataFile( Field, PlotFileDirectory, DataFileDirectory, \
 
 PlotFileArray = GetFileArray( PlotFileDirectory, PlotFileBaseName )
 
+if SSi < 0: SSi = 0
+if SSf < 0: SSf = PlotFileArray.shape[0] - 1
+if nSS < 0: nSS = PlotFileArray.shape[0]
+
 fig = plt.figure()
 ax  = fig.add_subplot( 111 )
 
 def f(t):
 
-    DataFile = DataFileDirectory + PlotFileArray[t] + '.dat'
+    iSS = SSi + np.int64( ( SSf - SSi + 1 ) / nSS ) * t
+
+    DataFile = DataFileDirectory + PlotFileArray[iSS] + '.dat'
 
     DataShape, DataUnits, Time, X1_C, X2_C, X3_C, dX1, dX2, dX3 \
       = ReadHeader( DataFile )
@@ -144,14 +150,12 @@ def UpdateFrame(t):
     ret = ( im, time_text )
     return ret
 
-nFrames = PlotFileArray.shape[0]
-
 # Call the animator
 anim = animation.FuncAnimation \
-         ( fig, UpdateFrame, frames = nFrames, \
+         ( fig, UpdateFrame, frames = nSS, \
            blit = True)
 
-fps = max( 1, nFrames / MovieRunTime )
+fps = max( 1, nSS / MovieRunTime )
 
 anim.save( MovieName, fps = fps )
 
