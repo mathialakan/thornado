@@ -6,8 +6,8 @@ from os.path import isfile
 import matplotlib.pyplot as plt
 from matplotlib import animation
 
-from UtilitiesModule import ChoosePlotFile, GetData, GetNorm, GetFileArray
-from MakeDataFile import MakeDataFile
+from UtilitiesModule import GetNorm, GetFileArray
+from MakeDataFile import MakeDataFile, ReadHeader
 
 # --- Get user's HOME directory ---
 
@@ -21,29 +21,38 @@ THORNADO_DIR = THORNADO_DIR[:-1].decode( "utf-8" ) + '/'
 
 #### ========== User Input ==========
 
-# Specify ID to be used for naming purposes
-ID = 'Advection1D'
+# ID to be used for naming purposes
+ID = 'RiemannProblem1D'
 
-# Specify directory containing plotfiles
-DataDirectory = THORNADO_DIR + 'SandBox/AMReX/Euler_Relativistic_IDEAL_MR/'
+# Directory containing AMReX plotfiles
+PlotFileDirectory \
+  = THORNADO_DIR + 'SandBox/AMReX/Euler_Relativistic_IDEAL_MR/'
 
-# Specify plot file base name
+# PlotFile base name (e.g., Advection2D.plt######## -> Advection2D.plt )
 PlotFileBaseName = ID + '.plt'
 
-# Specify field to plot
+# Field to plot
 Field = 'PF_D'
 
-# Specify to plot in log-scale
+# Plot data in log10-scale?
 UseLogScale = False
 
-# Specify whether or not to use physical units
+# Unit system of the data
 UsePhysicalUnits = False
 
-# Specify coordinate system (currently supports 'cartesian' and 'spherical' )
+# Coordinate system (currently supports 'cartesian' and 'spherical' )
 CoordinateSystem = 'cartesian'
 
-# Specify max level of refinement (-1 is MaxLevel)
+# First and last snapshots and number of snapshots to include in movie
+SSi = -1 # -1 -> SSi = 0
+SSf = -1 # -1 -> PlotFileArray.shape[0] - 1
+nSS = -1 # -1 -> PlotFileArray.shape[0]
+
+# Max level of refinement to include
 MaxLevel = -1
+
+# Include initial conditions in movie?
+ShowIC = True
 
 PlotMesh = False
 
@@ -57,95 +66,102 @@ MovieRunTime = 10.0 # seconds
 
 #### ====== End of User Input =======
 
-DataFileName = '.{:s}_MovieData1D.dat'.format( ID )
-MovieName    = 'mov.{:s}_{:s}.mp4'.format( ID, Field )
+DataFileDirectory = '.{:s}_{:s}_MovieData1D'.format( ID, Field )
+MovieName         = 'mov.{:s}_{:s}.mp4'.format( ID, Field )
 
-# Append "/" to DataDirectory, if not present
-if( not DataDirectory[-1] == '/' ): DataDirectory += '/'
+# Append "/" if not present
+if( not PlotFileDirectory[-1] == '/' ): PlotFileDirectory += '/'
+if( not DataFileDirectory[-1] == '/' ): DataFileDirectory += '/'
 
-TimeUnit = ''
-LengthUnit = ''
+MakeDataFile( Field, PlotFileDirectory, DataFileDirectory, \
+              PlotFileBaseName, CoordinateSystem, \
+              SSi = SSi, SSf = SSf, nSS = nSS, \
+              UsePhysicalUnits = UsePhysicalUnits, \
+              MaxLevel = MaxLevel, Verbose = Verbose )
+
+PlotFileArray = GetFileArray( PlotFileDirectory, PlotFileBaseName )
+
+fig = plt.figure()
+ax  = fig.add_subplot( 111 )
+
+ymin = +np.inf
+ymax = -np.inf
+
+def f(t):
+
+    DataFile = DataFileDirectory + PlotFileArray[t] + '.dat'
+
+    DataShape, DataUnits, Time, X1_C, X2_C, X3_C, dX1, dX2, dX3 \
+      = ReadHeader( DataFile )
+
+    Data = np.loadtxt( DataFile ).reshape( np.int64( DataShape ) )
+
+    global ymin, ymax
+    ymin = min( ymin, Data.min() )
+    ymax = max( ymax, Data.max() )
+
+    return Data, DataUnits, X1_C, dX1, Time
+
+Data0, DataUnits, X1_C0, dX10, Time0 = f(0)
+
+xL = np.array( [ X1_C0[0 ]-0.5*dX10[0 ] ], np.float64 )
+xU = np.array( [ X1_C0[-1]+0.5*dX10[-1] ], np.float64 )
+
+Norm = GetNorm( UseLogScale, Data0, vmin = ymin, vmax = ymax )
+
+TimeUnits = ''
+LengthUnits = ''
 if UsePhysicalUnits:
-
-    TimeUnit   = 'ms'
-    LengthUnit = 'km'
-
-Data, DataUnit, X1, X2, X3, dX1, dX2, dX3, xL, xU, nX \
-  = GetData( DataDirectory, PlotFileBaseName, Field, \
-             CoordinateSystem, UsePhysicalUnits, \
-             MaxLevel = MaxLevel, ReturnMesh = True )
-
-if not UseCustomLimits:
-    ymin = Data.min()
-    ymax = Data.max()
-
-nDims = 1
-if nX[1] > 1: nDims += 1
-if nX[2] > 1: nDims += 1
-
-assert ( nDims == 1 ), \
-       'Invalid nDims: {:d}\nnDims must equal 1'.format( nDims )
-
-FileArray = GetFileArray( DataDirectory, PlotFileBaseName )
-#FileArray = FileArray[0:10]
-
-fig, ax = plt.subplots()
+    TimeUnits   = 'ms'
+    LengthUnits = 'km'
 
 ax.set_xlim( xL[0], xU[0] )
 
-ax.set_xlabel( 'X1' + ' ' + LengthUnit )
-ax.set_ylabel( Field + ' ' + DataUnit )
+ax.set_xlabel( 'X1' + ' ' + LengthUnits )
+ax.set_ylabel( Field + ' ' + DataUnits )
 
 time_text = plt.text( 0.5, 0.7, '', transform = ax.transAxes )
 
 if( UseLogScale ): ax.set_yscale( 'log' )
 
-IC,   = ax.plot( [],[], 'r.', label = 'D(0)' )
-line, = ax.plot( [],[], 'k.', label = 'D(t)' )
+line, = ax.plot( [],[], 'k.', label = 'u(t)' )
+if ShowIC: IC, = ax.plot( [],[], 'r.', label = 'u(0)' )
 if PlotMesh: mesh, = ax.plot( [],[], 'b.', label = 'mesh' )
-
-def f( t ):
-
-    Data, DataUnit, X1, X2, X3, dX1, dX2, dX3, xL, xU, nX, Time \
-      = GetData( DataDirectory, PlotFileBaseName, Field, \
-                 CoordinateSystem, UsePhysicalUnits, \
-                 argv = [ 'a', FileArray[t] ], \
-                 MaxLevel = MaxLevel, ReturnMesh = True, ReturnTime = True )
-
-    return Data, X1, dX1, Time
 
 def InitializeFrame():
 
-    IC.set_data([],[])
     line.set_data([],[])
-    if PlotMesh: mesh.set_data([],[])
     time_text.set_text('')
+    if ShowIC: IC.set_data([],[])
+    if PlotMesh: mesh.set_data([],[])
 
-    if PlotMesh: ret = ( line, time_text, IC, mesh )
-    else:        ret = ( line, time_text, IC )
+    if ShowIC and PlotMesh: ret = ( line, time_text, IC, mesh )
+    elif ShowIC:            ret = ( line, time_text, IC )
+    elif PlotMesh:          ret = ( line, time_text, mesh )
+    else:                   ret = ( line, time_text )
+
     return ret
 
 def UpdateFrame( t ):
 
-    Data, X1, dX1, Time = f( 0 )
-    IC.set_data( X1, Data )
+    Data, DataUnits, X1_C, dX1, Time = f(t)
 
-    Data, X1, dX1, Time = f( t )
-    line.set_data( X1, Data )
+    line.set_data( X1_C, Data.flatten() )
+    time_text.set_text( 'Time = {:.3e} {:}'.format( Time, TimeUnits ) )
+    if ShowIC: IC.set_data( X1_C0, Data0.flatten() )
+    if PlotMesh: mesh.set_data( X1_C - 0.5 * dX1, np.ones( X1_C.shape[0] ) )
 
-    if PlotMesh: mesh.set_data( X1 - 0.5 * dX1, np.ones( X1.shape[0] ) )
-
-    time_text.set_text( 'time = {:.3e} {:}'.format( Time, TimeUnit ) )
-
-    if PlotMesh: ret = ( line, time_text, IC, mesh )
-    else:        ret = ( line, time_text, IC )
+    if ShowIC and PlotMesh: ret = ( line, time_text, IC, mesh )
+    elif ShowIC:            ret = ( line, time_text, IC )
+    elif PlotMesh:          ret = ( line, time_text, mesh )
+    else:                   ret = ( line, time_text )
 
     return ret
 
 ax.set_ylim( ymin, ymax )
 ax.legend()
 
-nFrames = FileArray.shape[0]
+nFrames = PlotFileArray.shape[0]
 
 fps = max( 1, nFrames / MovieRunTime )
 

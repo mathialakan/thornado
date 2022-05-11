@@ -54,7 +54,7 @@ nSS = -1 # -1 -> PlotFileArray.shape[0]
 # Max level of refinement to include
 MaxLevel = -1 # -1 -> use all levels
 
-Verbose = False
+Verbose = True
 
 UseCustomLimits = False
 vmin = 0.0
