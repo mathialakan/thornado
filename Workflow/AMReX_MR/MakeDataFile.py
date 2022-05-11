@@ -23,8 +23,7 @@ def MakeDataFile( Field, PlotFileDirectory, DataFileDirectory, \
 
     if OW:
 
-        PlotFileArray = GetFileArray( PlotFileDirectory, PlotFileBaseName, \
-                                      Verbose = False )
+        PlotFileArray = GetFileArray( PlotFileDirectory, PlotFileBaseName )
 
         # Ensure data directories end in '/'
         if( not PlotFileDirectory[-1] == '/' ): PlotFileDirectory += '/'
