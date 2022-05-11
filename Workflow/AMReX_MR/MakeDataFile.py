@@ -150,7 +150,7 @@ def ReadHeader( DataFile ):
     dum = f.readline()
 
     s = f.readline(); ind = s.find( ':' )+1
-    DataShape = list( map( np.int64, s[ind:].split() ) )
+    DataShape = np.array( list( map( np.int64, s[ind:].split() ) ), np.int64 )
 
     s = f.readline(); ind = s.find( ':' )+1
     DataUnits = s[ind:]
@@ -159,22 +159,22 @@ def ReadHeader( DataFile ):
     Time = np.float64( s[ind:] )
 
     s = f.readline(); ind = s.find( ':' )+1
-    X1_C = list( map( np.float64, s[ind:].split() ) )
+    X1_C = np.array( list( map( np.float64, s[ind:].split() ) ), np.float64 )
 
     s = f.readline(); ind = s.find( ':' )+1
-    X2_C = list( map( np.float64, s[ind:].split() ) )
+    X2_C = np.array( list( map( np.float64, s[ind:].split() ) ), np.float64 )
 
     s = f.readline(); ind = s.find( ':' )+1
-    X3_C = list( map( np.float64, s[ind:].split() ) )
+    X3_C = np.array( list( map( np.float64, s[ind:].split() ) ), np.float64 )
 
     s = f.readline(); ind = s.find( ':' )+1
-    dX1 = list( map( np.float64, s[ind:].split() ) )
+    dX1 = np.array( list( map( np.float64, s[ind:].split() ) ), np.float64 )
 
     s = f.readline(); ind = s.find( ':' )+1
-    dX2 = list( map( np.float64, s[ind:].split() ) )
+    dX2 = np.array( list( map( np.float64, s[ind:].split() ) ), np.float64 )
 
     s = f.readline(); ind = s.find( ':' )+1
-    dX3 = list( map( np.float64, s[ind:].split() ) )
+    dX3 = np.array( list( map( np.float64, s[ind:].split() ) ), np.float64 )
 
     f.close()
 
