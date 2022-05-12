@@ -15,7 +15,7 @@ MODULE AverageDownModule
   ! --- Local Modules ---
 
   USE InputParsingModule, ONLY: &
-    nLevels
+    nMaxLevels
 
   IMPLICIT NONE
   PRIVATE
@@ -28,7 +28,7 @@ CONTAINS
 
   SUBROUTINE AverageDown( MF )
 
-    TYPE(amrex_multifab), INTENT(inout) :: MF(0:nLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF(0:nMaxLevels-1)
 
     INTEGER :: iLevel, FinestLevel
 
@@ -46,7 +46,7 @@ CONTAINS
   SUBROUTINE AverageDownTo( CoarseLevel, MF )
 
     INTEGER,              INTENT(IN)    :: CoarseLevel
-    TYPE(amrex_multifab), INTENT(inout) :: MF(0:nLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF(0:nMaxLevels-1)
 
     INTEGER :: nComp
 

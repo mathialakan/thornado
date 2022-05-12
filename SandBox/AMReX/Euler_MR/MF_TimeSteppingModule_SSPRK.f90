@@ -9,7 +9,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     amrex_multifab_build, &
     amrex_multifab_destroy
   USE amrex_amrcore_module, ONLY: &
-    amrex_regrid
+    amrex_regrid, &
+    amrex_get_numlevels
 
   ! --- thornado Modules ---
 
@@ -42,6 +43,7 @@ MODULE MF_TimeSteppingModule_SSPRK
     ApplyBoundaryConditions_Geometry_MF
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     swX, &
     CFL, &
     nNodes, &
@@ -121,13 +123,13 @@ CONTAINS
 
   SUBROUTINE UpdateFluid_SSPRK_MF
 
-    TYPE(amrex_multifab) :: MF_U(1:nStages,0:nLevels-1)
-    TYPE(amrex_multifab) :: MF_D(1:nStages,0:nLevels-1)
+    TYPE(amrex_multifab) :: MF_U(1:nStages,0:nMaxLevels-1)
+    TYPE(amrex_multifab) :: MF_D(1:nStages,0:nMaxLevels-1)
 
     INTEGER :: iS, jS, nCompCF
     INTEGER :: iLevel
 
-    REAL(DP) :: dM_OffGrid_Euler(1:nCF,0:nLevels-1)
+    REAL(DP) :: dM_OffGrid_Euler(1:nCF,0:nMaxLevels-1)
 
     CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_UpdateFluid )
 
@@ -139,6 +141,8 @@ CONTAINS
           CALL amrex_regrid( iLevel, t_new(iLevel) )
 
       END DO
+
+      nLevels = amrex_get_numlevels()
 
       CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
 

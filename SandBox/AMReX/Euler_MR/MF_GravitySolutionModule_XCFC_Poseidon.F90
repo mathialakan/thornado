@@ -25,6 +25,7 @@ MODULE MF_GravitySolutionModule_XCFC_Poseidon
     DP
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     UseTiling, &
     swX
   USE MF_UtilitiesModule, ONLY: &
@@ -45,8 +46,8 @@ CONTAINS
 
   SUBROUTINE UpdateConformalFactorAndMetric_MF( MF_uMF, MF_uGF )
 
-    TYPE(amrex_multifab), INTENT(in)    :: MF_uMF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nLevels-1)
+    TYPE(amrex_multifab), INTENT(in)    :: MF_uMF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nMaxLevels-1)
 
     TYPE(amrex_box)    :: BX
     TYPE(amrex_mfiter) :: MFI

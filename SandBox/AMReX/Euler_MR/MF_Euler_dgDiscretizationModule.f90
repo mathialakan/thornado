@@ -81,6 +81,7 @@ MODULE  MF_Euler_dgDiscretizationModule
     MF_OffGridFlux_Euler
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     UseTiling, &
     swX, &
     do_reflux
@@ -115,11 +116,11 @@ CONTAINS
   SUBROUTINE ComputeIncrement_Euler_MF_MultipleLevels &
     ( Time, MF_uGF, MF_uCF, MF_uDF, MF_duCF, UseXCFC_Option )
 
-    REAL(DP),             INTENT(in)    :: Time   (0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF (0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF (0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF (0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_duCF(0:nLevels-1)
+    REAL(DP),             INTENT(in)    :: Time   (0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF (0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF (0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF (0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_duCF(0:nMaxLevels-1)
     LOGICAL,              INTENT(in), OPTIONAL :: UseXCFC_Option
 
     INTEGER :: iLevel
@@ -225,9 +226,9 @@ CONTAINS
 
     INTEGER,              INTENT(in)    :: iLevel
     REAL(DP),             INTENT(in)    :: Time
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nMaxLevels-1)
     TYPE(amrex_multifab), INTENT(inout) :: MF_duCF
     LOGICAL,              INTENT(in), OPTIONAL :: UseXCFC_Option
 

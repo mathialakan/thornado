@@ -85,6 +85,7 @@ MODULE InputOutputModuleAMReX
     FillPatch
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     MaxGridSizeX, &
     dt, &
     StepNo, &
@@ -180,18 +181,13 @@ CONTAINS
       MF_uAF_Option, MF_uDF_Option )
 
     REAL(DP),             INTENT(in) :: Time
-    INTEGER,              INTENT(in) :: StepNo(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in) :: MF_uGF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: &
-      MF_uGF_Option(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: &
-      MF_uCF_Option(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: &
-      MF_uPF_Option(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: &
-      MF_uAF_Option(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: &
-      MF_uDF_Option(0:nLevels-1)
+    INTEGER,              INTENT(in) :: StepNo(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in) :: MF_uGF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: MF_uGF_Option(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: MF_uCF_Option(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: MF_uPF_Option(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: MF_uAF_Option(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in), OPTIONAL :: MF_uDF_Option(0:nMaxLevels-1)
 
     CHARACTER(08)                   :: NumberString
     CHARACTER(64)                   :: PlotFileName

@@ -49,6 +49,7 @@ MODULE MF_Euler_TallyModule
   USE InputParsingModule, ONLY: &
     nX, &
     nLevels, &
+    nMaxLevels, &
     ProgramName, &
     UseTiling, &
     xL, &
@@ -111,19 +112,6 @@ CONTAINS
       SuppressTally = SuppressTally_Option
 
     IF( SuppressTally ) RETURN
-
-    IF( nLevels .GT. 1 )THEN
-
-      IF( amrex_parallel_ioprocessor() )THEN
-
-        WRITE(*,*)
-        WRITE(*,*) &
-          'WARNING: Euler_TallyModule not accurate for multi-level mesh'
-        WRITE(*,*)
-
-      END IF
-
-    END IF
 
     IF( amrex_parallel_ioprocessor() )THEN
 
@@ -199,9 +187,9 @@ CONTAINS
   SUBROUTINE ComputeTally_Euler_MF &
     ( Time, MF_uGF, MF_uCF, SetInitialValues_Option, Verbose_Option )
 
-    REAL(DP),             INTENT(in) :: Time  (0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in) :: MF_uGF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(in) :: MF_uCF(0:nLevels-1)
+    REAL(DP),             INTENT(in) :: Time  (0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in) :: MF_uGF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in) :: MF_uCF(0:nMaxLevels-1)
     LOGICAL,              INTENT(in), OPTIONAL :: SetInitialValues_Option
     LOGICAL,              INTENT(in), OPTIONAL :: Verbose_Option
 
@@ -315,7 +303,7 @@ CONTAINS
 
   SUBROUTINE IncrementOffGridTally_Euler_MF( dM )
 
-    REAL(DP), INTENT(in) :: dM(nCF,0:nLevels-1)
+    REAL(DP), INTENT(in) :: dM(1:nCF,0:nMaxLevels-1)
 
     INTEGER :: iLevel
 

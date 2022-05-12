@@ -101,6 +101,7 @@ MODULE InputParsingModule
   INTEGER :: BlockingFactor(3)
   INTEGER :: MaxLevel
   INTEGER :: nLevels
+  INTEGER :: nMaxLevels
   LOGICAL :: UseTiling
   LOGICAL :: do_reflux
   INTEGER , ALLOCATABLE :: RefinementRatio(:)
@@ -326,7 +327,8 @@ CONTAINS
     MaxGridSizeX   = [ MaxGridSizeX1   , MaxGridSizeX2   , MaxGridSizeX3    ]
     BlockingFactor = [ BlockingFactorX1, BlockingFactorX2, BlockingFactorX3 ]
 
-    nLevels = MaxLevel + 1
+    nMaxLevels = MaxLevel + 1
+    nLevels    = nMaxLevels
 
     CALL InitializeProgramHeader &
            ( ProgramName_Option = TRIM( ProgramName ), &

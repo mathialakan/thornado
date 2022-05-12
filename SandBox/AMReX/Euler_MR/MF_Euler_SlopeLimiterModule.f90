@@ -41,6 +41,7 @@ MODULE MF_Euler_SlopeLimiterModule
     MultiplyWithMetric
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     swX, &
     UseSlopeLimiter, &
     UseTiling
@@ -75,10 +76,10 @@ CONTAINS
   SUBROUTINE ApplySlopeLimiter_Euler_MF_MultipleLevels &
     ( Time, MF_uGF, MF_uCF, MF_uDF )
 
-    REAL(DP),             INTENT(in)    :: Time  (0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nLevels-1)
+    REAL(DP),             INTENT(in)    :: Time  (0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nMaxLevels-1)
 
     INTEGER :: iLevel
 
@@ -97,9 +98,9 @@ CONTAINS
 
     INTEGER,              INTENT(in)    :: iLevel
     REAL(DP),             INTENT(in)    :: Time
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nMaxLevels-1)
 
     TYPE(amrex_mfiter) :: MFI
     TYPE(amrex_box)    :: BX

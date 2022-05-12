@@ -32,6 +32,7 @@ MODULE RefluxModule_Euler
     MultiplyWithMetric
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     swX
 
   IMPLICIT NONE
@@ -49,8 +50,8 @@ CONTAINS
 
   SUBROUTINE Reflux_Euler_MF_MultipleLevels( MF_uGF, MF )
 
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF    (0:nLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF    (0:nMaxLevels-1)
 
     INTEGER :: iLevel
 
@@ -67,8 +68,8 @@ CONTAINS
   SUBROUTINE Reflux_Euler_MF_SingleLevel( FineLevel, MF_uGF, MF )
 
     INTEGER             , INTENT(in)    :: FineLevel
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF    (0:nLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF    (0:nMaxLevels-1)
 
     TYPE(amrex_multifab) :: SqrtGm(FineLevel-1:FineLevel)
 

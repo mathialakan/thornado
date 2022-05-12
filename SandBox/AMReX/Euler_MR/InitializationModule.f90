@@ -126,7 +126,7 @@ MODULE InitializationModule
     FillCoarsePatch
   USE InputParsingModule, ONLY: &
     InitializeParameters, &
-    nLevels, &
+    nMaxLevels, &
     swX, &
     StepNo, &
     iRestart, &
@@ -307,10 +307,10 @@ CONTAINS
              ClearLevel, &
              ErrorEstimate )
 
-    ALLOCATE( StepNo(0:nLevels-1) )
-    ALLOCATE( dt    (0:nLevels-1) )
-    ALLOCATE( t_old (0:nLevels-1) )
-    ALLOCATE( t_new (0:nLevels-1) )
+    ALLOCATE( StepNo(0:nMaxLevels-1) )
+    ALLOCATE( dt    (0:nMaxLevels-1) )
+    ALLOCATE( t_old (0:nMaxLevels-1) )
+    ALLOCATE( t_new (0:nMaxLevels-1) )
 
     StepNo = 0
     dt     = 0.0_DP
@@ -616,16 +616,16 @@ stop 'InitializationModule.f90'
 
     CHARACTER(32) :: RFMT, IFMT
 
-    WRITE(RFMT,'(A,I2.2,A)') '(4x,A,', nLevels, 'ES11.3E3)'
-    WRITE(IFMT,'(A,I2.2,A)') '(4x,A,', nLevels, 'I3.2)'
+    WRITE(RFMT,'(A,I2.2,A)') '(4x,A,', nMaxLevels, 'ES11.3E3)'
+    WRITE(IFMT,'(A,I2.2,A)') '(4x,A,', nMaxLevels, 'I3.2)'
 
     IF( .NOT. ALLOCATED( TagCriteria ) )THEN
-      ALLOCATE( TagCriteria(nLevels) )
+      ALLOCATE( TagCriteria(nMaxLevels) )
       TagCriteria = 0.0_DP
     END IF
 
     IF( .NOT. ALLOCATED( nRefinementBuffer ) )THEN
-      ALLOCATE( nRefinementBuffer(nLevels) )
+      ALLOCATE( nRefinementBuffer(nMaxLevels) )
       nRefinementBuffer = 1
     END IF
 
@@ -635,7 +635,7 @@ stop 'InitializationModule.f90'
       WRITE(*,'(4x,A)')       '-----------'
       WRITE(*,'(4x,A,3I4.3)') '        MaxGridSize: ', MaxGridSizeX
       WRITE(*,'(4x,A,3I4.3)') '     BlockingFactor: ', BlockingFactor
-      WRITE(*,'(4x,A,I2.2)')  '            nLevels: ', nLevels
+      WRITE(*,'(4x,A,I2.2)')  '         nMaxLevels: ', nMaxLevels
       WRITE(*,'(4x,A,L)')     '          do_reflux: ', do_reflux
       WRITE(*,'(4x,A,L)')     '          UseTiling: ', UseTiling
       WRITE(*,'(4x,A,L)')     '             UseAMR: ', UseAMR
