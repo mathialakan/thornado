@@ -465,6 +465,8 @@ CONTAINS
 
     END DO ! MFI
 
+    CALL amrex_parallel_reduce_sum( MF_OffGridFlux_Euler(:,iLevel), nCF )
+
     CALL amrex_mfiter_destroy( MFI )
 
     IF( do_reflux )THEN

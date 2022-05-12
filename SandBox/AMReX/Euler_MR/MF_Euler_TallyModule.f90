@@ -331,9 +331,6 @@ CONTAINS
 
     END DO
 
-    CALL amrex_parallel_reduce_sum( BaryonicMass_OffGrid )
-    CALL amrex_parallel_reduce_sum( Energy_OffGrid       )
-
   END SUBROUTINE IncrementOffGridTally_Euler_MF
 
 
