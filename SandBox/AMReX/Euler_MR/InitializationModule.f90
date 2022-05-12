@@ -435,8 +435,31 @@ CONTAINS
     REAL(DP),    INTENT(in), VALUE :: Time
     TYPE(c_ptr), INTENT(in), VALUE :: pBA, pDM
 
-print*,'Hello and goodbye from MakeNewLevelFromCoarse'
-stop 'InitializationModule.f90'
+    TYPE(amrex_boxarray)  :: BA
+    TYPE(amrex_distromap) :: DM
+
+    BA = pBA
+    DM = pDM
+
+    CALL ClearLevel( iLevel )
+
+    t_new( iLevel ) = Time
+    t_old( iLevel ) = Time - 1.0e200_DP
+
+    CALL amrex_multifab_build( MF_uGF(iLevel), BA, DM, nDOFX * nGF, swX )
+    CALL amrex_multifab_build( MF_uCF(iLevel), BA, DM, nDOFX * nCF, swX )
+    CALL amrex_multifab_build( MF_uPF(iLevel), BA, DM, nDOFX * nPF, swX )
+    CALL amrex_multifab_build( MF_uAF(iLevel), BA, DM, nDOFX * nAF, swX )
+    CALL amrex_multifab_build( MF_uDF(iLevel), BA, DM, nDOFX * nDF, swX )
+
+    IF( iLevel .GT. 0 .AND. do_reflux ) &
+      CALL amrex_fluxregister_build &
+             ( FluxRegister(iLevel), BA, DM, amrex_ref_ratio(iLevel-1), &
+               iLevel, nDOFX_X1 * nCF )
+
+    CALL FillCoarsePatch( iLevel, Time, MF_uGF )
+    CALL FillCoarsePatch( iLevel, Time, MF_uCF )
+    CALL FillCoarsePatch( iLevel, Time, MF_uDF )
 
   END SUBROUTINE MakeNewLevelFromCoarse
 
