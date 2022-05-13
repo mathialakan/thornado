@@ -4,6 +4,8 @@ MODULE MF_GeometryModule
 
   USE amrex_box_module, ONLY: &
     amrex_box
+  USE amrex_geometry_module, ONLY: &
+    amrex_is_all_periodic
   USE amrex_multifab_module, ONLY: &
     amrex_multifab, &
     amrex_mfiter, &
@@ -140,7 +142,11 @@ CONTAINS
 
     TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:nMaxLevels-1)
 
-    CALL ApplyBoundaryConditions_Geometry_MF_X1( MF_uGF )
+    IF( .NOT. amrex_is_all_periodic() )THEN
+
+      CALL ApplyBoundaryConditions_Geometry_MF_X1( MF_uGF )
+
+    END IF
 
   END SUBROUTINE ApplyBoundaryConditions_Geometry_MF
 
