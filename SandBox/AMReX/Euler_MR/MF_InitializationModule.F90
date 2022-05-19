@@ -7,12 +7,8 @@ MODULE MF_InitializationModule
 
   ! --- Local Modules ---
 
-  USE InputParsingModule, ONLY: &
-    ProgramName
   USE MF_InitializationModule_Relativistic_IDEAL, ONLY: &
     InitializeFields_Euler_Relativistic_IDEAL_MF
-  USE MF_InitializationModule_AdiabaticCollapse_XCFC, ONLY: &
-    InitializeFields_Euler_AdiabaticCollapse_XCFC_MF
 
   IMPLICIT NONE
   PRIVATE
@@ -29,17 +25,8 @@ CONTAINS
 
 #ifdef HYDRO_RELATIVISTIC
 
-    IF( TRIM( ProgramName ) .EQ. 'AdiabaticCollapse_XCFC' )THEN
-
-      CALL InitializeFields_Euler_AdiabaticCollapse_XCFC_MF &
-             ( MF_uGF, MF_uCF )
-
-    ELSE
-
-      CALL InitializeFields_Euler_Relativistic_IDEAL_MF &
-             ( iLevel, MF_uGF, MF_uCF )
-
-    END IF
+    CALL InitializeFields_Euler_Relativistic_IDEAL_MF &
+           ( iLevel, MF_uGF, MF_uCF )
 
 #endif
 
