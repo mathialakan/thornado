@@ -113,7 +113,7 @@ CONTAINS
 
     CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_Finalize )
 
-    CALL FinalizeTimers_AMReX_Euler
+    CALL FinalizeTimers_AMReX_Euler( WriteAtIntermediateTime_Option = .TRUE. )
 
     CALL amrex_amrcore_finalize()
 
