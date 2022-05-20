@@ -137,26 +137,22 @@ CONTAINS
 
     nCompCF = nDOFX * nCF
 
+    IF( UseAMR )THEN
+
+      DO iLevel = 0, nLevels-1
+
+        IF( iLevel .LT. nLevels-1 ) &
+          CALL amrex_regrid( iLevel, t_new(iLevel) )
+
+      END DO
+
+      nLevels = amrex_get_numlevels()
+
+      CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
+
+    END IF
+
     DO iS = 1, nStages
-
-      IF( iS .EQ. 1 )THEN
-
-        IF( UseAMR )THEN
-
-          DO iLevel = 0, nLevels-1
-
-            IF( iLevel .LT. nLevels-1 ) &
-              CALL amrex_regrid( iLevel, t_new(iLevel) )
-
-          END DO
-
-          nLevels = amrex_get_numlevels()
-
-          CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
-
-        END IF
-
-      END IF
 
       DO iLevel = 0, nLevels-1
 
