@@ -4,8 +4,6 @@ MODULE MF_Euler_TallyModule
 
   USE amrex_box_module, ONLY: &
     amrex_box
-  USE amrex_geometry_module, ONLY: &
-    amrex_geometry
   USE amrex_multifab_module, ONLY: &
     amrex_multifab, &
     amrex_imultifab, &
@@ -15,27 +13,20 @@ MODULE MF_Euler_TallyModule
   USE amrex_parallel_module, ONLY: &
     amrex_parallel_ioprocessor, &
     amrex_parallel_reduce_sum
-  USE amrex_amr_module, ONLY: &
-    amrex_geom
 
   ! --- thornado Modules ---
 
   USE ProgramHeaderModule, ONLY: &
-    nDOFX, &
-    nNodesX, &
-    nDimsX
+    nDOFX
   USE ReferenceElementModuleX, ONLY: &
     WeightsX_q
   USE UnitsModule, ONLY: &
     UnitsDisplay
   USE MeshModule, ONLY: &
-    MeshType, &
-    CreateMesh, &
-    DestroyMesh
+    MeshType
   USE GeometryFieldsModule, ONLY: &
     nGF, &
-    iGF_SqrtGm, &
-    CoordinateSystem
+    iGF_SqrtGm
   USE FluidFieldsModule, ONLY: &
     nCF, &
     iCF_D, &
@@ -47,13 +38,11 @@ MODULE MF_Euler_TallyModule
     DP, &
     Zero
   USE InputParsingModule, ONLY: &
-    nX, &
     nLevels, &
     nMaxLevels, &
     ProgramName, &
     UseTiling, &
-    xL, &
-    xR
+    do_reflux
   USE MF_MeshModule, ONLY: &
     CreateMesh_MF, &
     DestroyMesh_MF
@@ -114,6 +103,13 @@ CONTAINS
     IF( SuppressTally ) RETURN
 
     IF( amrex_parallel_ioprocessor() )THEN
+
+      IF( nMaxLevels .GT. 1 )THEN
+
+        IF( .NOT. do_reflux ) &
+          WRITE(*,*) 'WARNING: Euler tally not accurate when do_reflux is false'
+
+      END IF
 
       BaseFileName = ''
       IF( PRESENT( BaseFileName_Option ) ) &
