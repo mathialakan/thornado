@@ -40,6 +40,7 @@ PROGRAM ApplicationDriver
     UpdateFluid_SSPRK_MF
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     StepNo, &
     t_end, &
     t_new, &
@@ -120,6 +121,7 @@ PROGRAM ApplicationDriver
     END IF
 
     CALL WritePlotFile
+
     CALL WriteCheckpointFile
 
   END DO
@@ -212,7 +214,7 @@ CONTAINS
              ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
 
       CALL WriteFieldsAMReX_Checkpoint &
-             ( StepNo, nLevels, dt, t_new, &
+             ( StepNo, nMaxLevels, dt, t_new, &
                MF_uGF % BA % P, &
                MF_uGF % P, &
                MF_uCF % P )

@@ -39,6 +39,7 @@ MODULE FinalizationModule
     FinalizeTally_Euler_MF
   USE InputParsingModule, ONLY: &
     nLevels, &
+    nMaxLevels, &
     StepNo, &
     dt, &
     t_old, &
@@ -78,7 +79,7 @@ CONTAINS
              MF_uDF_Option = MF_uDF )
 
     CALL WriteFieldsAMReX_Checkpoint &
-           ( StepNo, nLevels, dt, t_new, &
+           ( StepNo, nMaxLevels, dt, t_new, &
              MF_uGF % BA % P, &
              MF_uGF % P, &
              MF_uCF % P )

@@ -425,22 +425,22 @@ CONTAINS
     IMPLICIT NONE
 
     INTEGER     :: iLevel, FinestLevel
-    TYPE(c_ptr) :: pBA(0:nLevels-1)
-    TYPE(c_ptr) :: pDM(0:nLevels-1)
-    TYPE(c_ptr) :: pGF(0:nLevels-1)
-    TYPE(c_ptr) :: pCF(0:nLevels-1)
+    TYPE(c_ptr) :: pBA(0:nMaxLevels-1)
+    TYPE(c_ptr) :: pDM(0:nMaxLevels-1)
+    TYPE(c_ptr) :: pGF(0:nMaxLevels-1)
+    TYPE(c_ptr) :: pCF(0:nMaxLevels-1)
     TYPE(c_ptr) :: amrcore
 
     TYPE(amrex_box)       :: BX
-    TYPE(amrex_distromap) :: DM  (0:nLevels-1)
-    TYPE(amrex_boxarray)  :: BA  (0:nLevels-1)
-    TYPE(amrex_geometry)  :: GEOM(0:nLevels-1)
+    TYPE(amrex_distromap) :: DM  (0:nMaxLevels-1)
+    TYPE(amrex_boxarray)  :: BA  (0:nMaxLevels-1)
+    TYPE(amrex_geometry)  :: GEOM(0:nMaxLevels-1)
 
     amrcore = amrex_get_amrcore()
 
     BX = amrex_box( [ 0, 0, 0 ], [ nX(1)-1, nX(2)-1, nX(3)-1 ] )
 
-    DO iLevel = 0, nLevels-1
+    DO iLevel = 0, nMaxLevels-1
 
       CALL amrex_boxarray_build ( BA(iLevel), BX )
 
@@ -452,29 +452,29 @@ CONTAINS
 
     END DO
 
-    pBA(0:nLevels-1) = BA(0:nLevels-1) % P
-    pDM(0:nLevels-1) = DM(0:nLevels-1) % P
+    pBA(0:nMaxLevels-1) = BA(0:nMaxLevels-1) % P
+    pDM(0:nMaxLevels-1) = DM(0:nMaxLevels-1) % P
 
-    FinestLevel = nLevels-1
+    FinestLevel = nMaxLevels-1
 
     CALL ReadHeaderAndBoxArrayData &
            ( FinestLevel, StepNo, dt, t_new, pBA, pDM, iRestart )
 
-    DO iLevel = 0, nLevels-1
+    DO iLevel = 0, nMaxLevels-1
 
       BA(iLevel) = pBA(iLevel)
       DM(iLevel) = pDM(iLevel)
 
     END DO
 
-    DO iLevel = 0, nLevels-1
+    DO iLevel = 0, nMaxLevels-1
 
       CALL amrex_fi_set_boxarray ( iLevel, BA(iLevel) % P, amrcore )
       CALL amrex_fi_set_distromap( iLevel, DM(iLevel) % P, amrcore )
 
     END DO
 
-    DO iLevel = 0, nLevels-1
+    DO iLevel = 0, nMaxLevels-1
 
       CALL amrex_multifab_build &
              ( MF_uGF(iLevel), BA(iLevel), DM(iLevel), nDOFX * nGF, swX )
@@ -502,20 +502,20 @@ CONTAINS
 
     END DO
 
-    pGF(0:nLevels-1) = MF_uGF(0:nLevels-1) % P
-    pCF(0:nLevels-1) = MF_uCF(0:nLevels-1) % P
+    pGF(0:nMaxLevels-1) = MF_uGF(0:nMaxLevels-1) % P
+    pCF(0:nMaxLevels-1) = MF_uCF(0:nMaxLevels-1) % P
 
-    CALL ReadMultiFabData( nLevels-1, pGF, 0, iRestart )
-    CALL ReadMultiFabData( nLevels-1, pCF, 1, iRestart )
+    CALL ReadMultiFabData( nMaxLevels-1, pGF, 0, iRestart )
+    CALL ReadMultiFabData( nMaxLevels-1, pCF, 1, iRestart )
 
-    DO iLevel = 0, nLevels-1
+    DO iLevel = 0, nMaxLevels-1
 
       CALL FillPatch( iLevel, t_new(0), MF_uGF )
       CALL FillPatch( iLevel, t_new(0), MF_uCF )
 
     END DO
 
-    CALL amrex_fi_set_finest_level( nLevels-1, amrcore )
+    CALL amrex_fi_set_finest_level( nMaxLevels-1, amrcore )
 
   END SUBROUTINE ReadCheckpointFile
 
