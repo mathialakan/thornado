@@ -11,6 +11,8 @@ MODULE MF_TimeSteppingModule_SSPRK
   USE amrex_amrcore_module, ONLY: &
     amrex_regrid, &
     amrex_get_numlevels
+  USE amrex_parallel_module, ONLY: &
+    amrex_parallel_ioprocessor
 
   ! --- thornado Modules ---
 
@@ -26,8 +28,6 @@ MODULE MF_TimeSteppingModule_SSPRK
     Zero, &
     One, &
     Two
-  USE AverageDownModule, ONLY: &
-    AverageDownTo
   USE MF_Euler_dgDiscretizationModule, ONLY: &
     ComputeIncrement_Euler_MF
   USE MF_Euler_TallyModule, ONLY: &
@@ -43,6 +43,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     MF_OffGridFlux_Euler
   USE MF_GeometryModule, ONLY: &
     ApplyBoundaryConditions_Geometry_MF
+  USE AverageDownModule, ONLY: &
+    AverageDownTo
   USE InputParsingModule, ONLY: &
     nLevels, &
     nMaxLevels, &
@@ -53,7 +55,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     do_reflux, &
     t_new, &
     dt, &
-    UseAMR
+    UseAMR, &
+    StepNo
   USE RefluxModule_Euler, ONLY: &
     Reflux_Euler_MF
   USE MF_Euler_TimersModule, ONLY: &
@@ -141,18 +144,30 @@ CONTAINS
 
     IF( UseAMR )THEN
 
-      DO iLevel = 0, nLevels-1
+      IF( MOD( StepNo(0), 100 ) .EQ. 0 )THEN
 
-        IF( iLevel .LT. nLevels-1 ) &
-          CALL amrex_regrid( iLevel, t_new(iLevel) )
+        IF( amrex_parallel_ioprocessor() )THEN
 
-      END DO
+          WRITE(*,*)
+          WRITE(*,'(6x,A)') 'Regridding'
+          WRITE(*,*)
 
-      nLevels = amrex_get_numlevels()
+        END IF
 
-      CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
+        DO iLevel = 0, nLevels
 
-    END IF
+          IF( iLevel .LT. nLevels-1 ) &
+            CALL amrex_regrid( iLevel, t_new(iLevel) )
+
+        END DO
+
+        nLevels = amrex_get_numlevels()
+
+        CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
+
+      END IF
+
+    END IF ! UseAMR
 
     DO iS = 1, nStages
 
