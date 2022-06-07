@@ -106,8 +106,15 @@ CONTAINS
 
       IF( nMaxLevels .GT. 1 )THEN
 
-        IF( .NOT. do_reflux ) &
-          WRITE(*,*) 'WARNING: Euler tally not accurate when do_reflux is false'
+        IF( .NOT. do_reflux )THEN
+
+          WRITE(*,*)
+          WRITE(*,'(4x,A)') &
+            'WARNING: Euler tally not accurate when do_reflux is false'
+          WRITE(*,'(4x,A)') &
+            '-------'
+
+        END IF
 
       END IF
 
