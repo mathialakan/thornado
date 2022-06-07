@@ -53,6 +53,7 @@ MODULE InputParsingModule
   REAL(DP)                  :: t_end
   REAL(DP)                  :: CFL
   LOGICAL     , SAVE        :: UsePhysicalUnits
+  LOGICAL     , SAVE        :: DEBUG
 
   ! --- Boundary Conditions ---
 
@@ -132,9 +133,11 @@ CONTAINS
     IF( .NOT. amrex_amrcore_initialized() ) &
       CALL amrex_amrcore_init()
 
+    DEBUG             = .FALSE.
     WriteNodalData    = .FALSE.
     NodalDataFileName = ''
     CALL amrex_parmparse_build( PP, 'debug' )
+      CALL PP % query( 'DEBUG', DEBUG )
       CALL PP % query( 'WriteNodalData', WriteNodalData )
       CALL PP % query( 'NodalDataFileName', NodalDataFileName )
     CALL amrex_parmparse_destroy( PP )
