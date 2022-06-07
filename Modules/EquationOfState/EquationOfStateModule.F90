@@ -26,7 +26,8 @@ MODULE EquationOfStateModule
     ComputeProtonChemicalPotential_TABLE, &
     ComputeNeutronChemicalPotential_TABLE
   USE UnitsModule, ONLY: &
-    AtomicMassUnit
+    AtomicMassUnit, &
+    UnitsDisplay
 
   IMPLICIT NONE
   PRIVATE
@@ -135,12 +136,18 @@ CONTAINS
 
   SUBROUTINE InitializeEquationOfState &
     ( EquationOfState_Option, EquationOfStateTableName_Option, &
-      Gamma_IDEAL_Option, Verbose_Option )
+      Gamma_IDEAL_Option, Min_D_IDEAL_Option, Min_P_IDEAL_Option, &
+      Verbose_Option )
 
     CHARACTER(LEN=*), INTENT(in), OPTIONAL :: EquationOfState_Option
     CHARACTER(LEN=*), INTENT(in), OPTIONAL :: EquationOfStateTableName_Option
     REAL(DP),         INTENT(in), OPTIONAL :: Gamma_IDEAL_Option
+    REAL(DP),         INTENT(in), OPTIONAL :: Min_D_IDEAL_Option
+    REAL(DP),         INTENT(in), OPTIONAL :: Min_P_IDEAL_Option
     LOGICAL,          INTENT(in), OPTIONAL :: Verbose_Option
+
+    REAL(DP) :: Min_D_IDEAL
+    REAL(DP) :: Min_P_IDEAL
 
     LOGICAL :: Verbose
 
@@ -155,6 +162,14 @@ CONTAINS
     ELSE
       Verbose = .FALSE.
     END IF
+
+    Min_D_IDEAL = 1.0e-12_DP * UnitsDisplay % MassDensityUnit
+    IF( PRESENT( Min_D_IDEAL_Option ) ) &
+      Min_D_IDEAL = Min_D_IDEAL_Option
+
+    Min_P_IDEAL = 1.0e-12_DP * UnitsDisplay % PressureUnit
+    IF( PRESENT( Min_P_IDEAL_Option ) ) &
+      Min_P_IDEAL = Min_P_IDEAL_Option
 
     IF( Verbose )THEN
       WRITE(*,*)
@@ -171,6 +186,10 @@ CONTAINS
         CALL InitializeEquationOfState_IDEAL &
                ( Gamma_IDEAL_Option &
                    = Gamma_IDEAL_Option, &
+                 Min_D_IDEAL_Option &
+                   = Min_D_IDEAL, &
+                 Min_P_IDEAL_Option &
+                   = Min_P_IDEAL, &
                  Verbose_Option = Verbose )
 
       CASE ( 'TABLE' )

@@ -1,6 +1,6 @@
 EquationOfStateModule_IDEAL.o: \
   KindModule.o \
-  FluidFieldsModule.o \
+  UnitsModule.o \
   EquationOfStateModule_IDEAL.F90
 
 ifneq ($(MICROPHYSICS),WEAKLIB)

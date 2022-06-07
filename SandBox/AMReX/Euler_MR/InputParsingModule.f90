@@ -83,6 +83,8 @@ MODULE InputParsingModule
   CHARACTER(:), ALLOCATABLE :: EquationOfState
   CHARACTER(:), ALLOCATABLE :: EosTableName
   REAL(DP)                  :: Gamma_IDEAL
+  REAL(DP)                  :: Min_D_IDEAL
+  REAL(DP)                  :: Min_P_IDEAL
 
   ! --- geometry ---
 
@@ -218,17 +220,6 @@ CONTAINS
       CALL PP % query( 'Min_2'               , Min_2                )
     CALL amrex_parmparse_destroy( PP )
 
-    ! --- Equation of State Parameters EoS.* ---
-
-    EquationOfState = 'IDEAL'
-    Gamma_IDEAL     = 4.0_DP / 3.0_DP
-    EosTableName    = ''
-    CALL amrex_parmparse_build( PP, 'EoS' )
-      CALL PP % query ( 'EquationOfState', EquationOfState )
-      CALL PP % query ( 'Gamma_IDEAL', Gamma_IDEAL )
-      CALL PP % query ( 'EosTableName', EosTableName )
-    CALL amrex_parmparse_destroy( PP )
-
     ! --- Parameters geometry.* ---
 
     CALL amrex_parmparse_build( PP, 'geometry' )
@@ -274,6 +265,21 @@ CONTAINS
       xR(3) = xR(3) * UnitsDisplay % LengthX3Unit
 
     END IF
+
+    ! --- Equation of State Parameters EoS.* ---
+
+    EquationOfState = 'IDEAL'
+    Gamma_IDEAL     = 4.0_DP / 3.0_DP
+    Min_D_IDEAL     = 1.0e-12_DP * UnitsDisplay % MassDensityUnit
+    Min_P_IDEAL     = 1.0e-12_DP * UnitsDisplay % PressureUnit
+    EosTableName    = ''
+    CALL amrex_parmparse_build( PP, 'EoS' )
+      CALL PP % query ( 'EquationOfState', EquationOfState )
+      CALL PP % query ( 'Gamma_IDEAL', Gamma_IDEAL )
+      CALL PP % query ( 'Min_D_IDEAL', Min_D_IDEAL )
+      CALL PP % query ( 'Min_P_IDEAL', Min_P_IDEAL )
+      CALL PP % query ( 'EosTableName', EosTableName )
+    CALL amrex_parmparse_destroy( PP )
 
     ! --- Parameters amr.* ---
 

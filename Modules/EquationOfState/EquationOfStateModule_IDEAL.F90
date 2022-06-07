@@ -2,12 +2,16 @@ MODULE EquationOfStateModule_IDEAL
 
   USE KindModule, ONLY: &
     DP, One
+  USE UnitsModule, ONLY: &
+    UnitsDisplay
 
   IMPLICIT NONE
   PRIVATE
 
   REAL(DP), PUBLIC :: &
-    Gamma_IDEAL
+    Gamma_IDEAL, &
+    Min_D_IDEAL, &
+    Min_P_IDEAL
 
   PUBLIC :: InitializeEquationOfState_IDEAL
   PUBLIC :: FinalizeEquationOfState_IDEAL
@@ -52,9 +56,12 @@ CONTAINS
 
 
   SUBROUTINE InitializeEquationOfState_IDEAL &
-    ( Gamma_IDEAL_Option, Verbose_Option )
+    ( Gamma_IDEAL_Option, Min_D_IDEAL_Option, Min_P_IDEAL_Option, &
+      Verbose_Option )
 
     REAL(DP), INTENT(in), OPTIONAL :: Gamma_IDEAL_Option
+    REAL(DP), INTENT(in), OPTIONAL :: Min_D_IDEAL_Option
+    REAL(DP), INTENT(in), OPTIONAL :: Min_P_IDEAL_Option
     LOGICAL,  INTENT(in), OPTIONAL :: Verbose_Option
 
     LOGICAL :: Verbose
@@ -69,11 +76,25 @@ CONTAINS
     IF( PRESENT( Verbose_Option ) ) &
       Verbose = Verbose_Option
 
+    Min_D_IDEAL = 1.0e-12_DP * UnitsDisplay % MassDensityUnit
+    IF( PRESENT( Min_D_IDEAL_Option ) ) &
+      Min_D_IDEAL = Min_D_IDEAL_Option
+
+    Min_P_IDEAL = 1.0e-12_DP * UnitsDisplay % PressureUnit
+    IF( PRESENT( Min_P_IDEAL_Option ) ) &
+      Min_P_IDEAL = Min_P_IDEAL_Option
+
     IF( Verbose )THEN
 
       WRITE(*,*)
-      WRITE(*,'(A7,A13,ES10.3E3)') &
-           '', 'Gamma_IDEAL: ', Gamma_IDEAL
+      WRITE(*,'(7x,A13,ES10.3E3)') &
+           'Gamma_IDEAL: ', Gamma_IDEAL
+      WRITE(*,'(7x,A13,ES10.3E3,A)') &
+           'Min_D_IDEAL: ', Min_D_IDEAL / UnitsDisplay % MassDensityUnit, &
+           UnitsDisplay % MassDensityLabel
+      WRITE(*,'(7x,A13,ES10.3E3),A') &
+           'Min_P_IDEAL: ', Min_P_IDEAL / UnitsDisplay % PressureUnit, &
+           UnitsDisplay % PressureLabel
       WRITE(*,*)
 
     END IF
