@@ -26,6 +26,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     Zero, &
     One, &
     Two
+  USE AverageDownModule, ONLY: &
+    AverageDownTo
   USE MF_Euler_dgDiscretizationModule, ONLY: &
     ComputeIncrement_Euler_MF
   USE MF_Euler_TallyModule, ONLY: &
@@ -172,11 +174,16 @@ CONTAINS
 
         DO iLevel = 0, nLevels-1
 
-          IF( a_SSPRK(iS,jS) .NE. Zero ) &
+          IF( a_SSPRK(iS,jS) .NE. Zero )THEN
+
             CALL MF_U(iS,iLevel) &
                    % LinComb( One, MF_U(iS,iLevel), 1, &
                               dt(iLevel) * a_SSPRK(iS,jS), MF_D(jS,iLevel), 1, &
                               1, nCompCF, 0 )
+
+            IF( iLevel .GT. 0 ) CALL AverageDownTo( iLevel-1, MF_U(iS,:) )
+
+          END IF
 
         END DO ! iLevel
 
@@ -212,11 +219,16 @@ CONTAINS
 
       DO iLevel = 0, nLevels-1
 
-        IF( w_SSPRK(iS) .NE. Zero ) &
+        IF( w_SSPRK(iS) .NE. Zero )THEN
+
           CALL MF_uCF(iLevel) &
                  % LinComb( One, MF_uCF(iLevel), 1, &
                             dt(iLevel) * w_SSPRK(iS), MF_D(iS,iLevel), 1, 1, &
                             nCompCF, 0 )
+
+          IF( iLevel .GT. 0 ) CALL AverageDownTo( iLevel-1, MF_uCF )
+
+        END IF
 
       END DO ! iLevel
 
