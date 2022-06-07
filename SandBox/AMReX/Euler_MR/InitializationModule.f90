@@ -421,10 +421,13 @@ CONTAINS
 
     CALL InitializeFields_Euler_MF( iLevel, MF_uGF(iLevel), MF_uCF(iLevel) )
 
+    CALL FillPatch( iLevel, t_new(iLevel), MF_uGF )
+    CALL FillPatch( iLevel, t_new(iLevel), MF_uCF )
+
     IF( iLevel .GT. 0 )THEN
 
-      CALL AverageDownTo( iLevel-1, MF_uCF )
       CALL AverageDownTo( iLevel-1, MF_uGF )
+      CALL AverageDownTo( iLevel-1, MF_uCF )
 
     END IF
 
