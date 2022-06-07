@@ -171,7 +171,7 @@ CONTAINS
 
     DO iS = 1, nStages
 
-      DO iLevel = 0, nLevels-1
+      DO iLevel = 0, nMaxLevels-1
 
         CALL amrex_multifab_build &
                ( MF_U(iS,iLevel), MF_uCF(iLevel) % BA, &
