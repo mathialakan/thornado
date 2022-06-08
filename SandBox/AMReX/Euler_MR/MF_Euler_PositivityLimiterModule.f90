@@ -32,7 +32,6 @@ MODULE MF_Euler_PositivityLimiterModule
     thornado2amrex_X
   USE InputParsingModule, ONLY: &
     nLevels, &
-    nMaxLevels, &
     UsePositivityLimiter, &
     UseTiling
   USE MF_Euler_TimersModule, ONLY: &
@@ -56,9 +55,9 @@ CONTAINS
   SUBROUTINE ApplyPositivityLimiter_Euler_MF_MultipleLevels &
     ( MF_uGF, MF_uCF, MF_uDF )
 
-    TYPE(amrex_multifab), INTENT(in)    :: MF_uGF(0:nMaxLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nMaxLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in)    :: MF_uGF(0:)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:)
 
     INTEGER :: iLevel
 
@@ -76,9 +75,9 @@ CONTAINS
     ( iLevel, MF_uGF, MF_uCF, MF_uDF )
 
     INTEGER             , INTENT(in)    :: iLevel
-    TYPE(amrex_multifab), INTENT(in)    :: MF_uGF(0:nMaxLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:nMaxLevels-1)
-    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in)    :: MF_uGF(0:)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:)
 
     TYPE(amrex_mfiter) :: MFI
     TYPE(amrex_box)    :: BX

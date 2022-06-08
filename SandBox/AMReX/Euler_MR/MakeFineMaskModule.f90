@@ -19,8 +19,7 @@ MODULE MakeFineMaskModule
   ! --- Local Modules ---
 
   USE InputParsingModule, ONLY: &
-    nLevels, &
-    nMaxLevels
+    nLevels
 
   IMPLICIT NONE
   PRIVATE
@@ -57,8 +56,8 @@ CONTAINS
 
     INTEGER              , INTENT(in)    :: iLevel
     TYPE(amrex_imultifab), INTENT(inout) :: iMF_Mask
-    TYPE(amrex_boxarray) , INTENT(in)    :: BA(0:nMaxLevels-1)
-    TYPE(amrex_distromap), INTENT(in)    :: DM(0:nMaxLevels-1)
+    TYPE(amrex_boxarray) , INTENT(in)    :: BA(0:)
+    TYPE(amrex_distromap), INTENT(in)    :: DM(0:)
 
     IF( nLevels .GT. 1 .AND. iLevel .LT. nLevels-1 )THEN
 

@@ -190,9 +190,9 @@ CONTAINS
   SUBROUTINE ComputeTally_Euler_MF &
     ( Time, MF_uGF, MF_uCF, SetInitialValues_Option, Verbose_Option )
 
-    REAL(DP),             INTENT(in) :: Time  (0:nMaxLevels-1)
-    TYPE(amrex_multifab), INTENT(in) :: MF_uGF(0:nMaxLevels-1)
-    TYPE(amrex_multifab), INTENT(in) :: MF_uCF(0:nMaxLevels-1)
+    REAL(DP),             INTENT(in) :: Time  (0:)
+    TYPE(amrex_multifab), INTENT(in) :: MF_uGF(0:)
+    TYPE(amrex_multifab), INTENT(in) :: MF_uCF(0:)
     LOGICAL,              INTENT(in), OPTIONAL :: SetInitialValues_Option
     LOGICAL,              INTENT(in), OPTIONAL :: Verbose_Option
 
@@ -306,7 +306,7 @@ CONTAINS
 
   SUBROUTINE IncrementOffGridTally_Euler_MF( dM )
 
-    REAL(DP), INTENT(in) :: dM(1:nCF,0:nMaxLevels-1)
+    REAL(DP), INTENT(in) :: dM(1:,0:)
 
     INTEGER :: iLevel
 

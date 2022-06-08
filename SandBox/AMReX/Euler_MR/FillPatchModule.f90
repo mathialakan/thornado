@@ -35,7 +35,6 @@ MODULE FillPatchModule
   USE MF_KindModule, ONLY: &
     DP
   USE InputParsingModule, ONLY: &
-    nMaxLevels, &
     UseTiling, &
     t_old, &
     t_new, &
@@ -66,11 +65,8 @@ CONTAINS
   SUBROUTINE FillPatch_MultiTime( iLevel, t_old, t_new, t, MF_old, MF_new, MF )
 
     INTEGER,              INTENT(in)    :: iLevel
-    REAL(DP),             INTENT(in)    :: t_old(0:nMaxLevels-1), &
-                                           t_new(0:nMaxLevels-1), &
-                                           t
-    TYPE(amrex_multifab), INTENT(in)    :: MF_old(0:nMaxLevels-1), &
-                                           MF_new(0:nMaxLevels-1)
+    REAL(DP),             INTENT(in)    :: t_old(0:), t_new(0:), t
+    TYPE(amrex_multifab), INTENT(in)    :: MF_old(0:), MF_new(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF
 
     INTEGER, PARAMETER :: sComp = 1, dComp = 1
@@ -106,7 +102,7 @@ CONTAINS
 
     INTEGER,              INTENT(in)    :: iLevel
     REAL(DP),             INTENT(in)    :: Time
-    TYPE(amrex_multifab), INTENT(inout) :: MF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF(0:)
 
     INTEGER, PARAMETER :: sComp = 1, dComp = 1
 
@@ -143,7 +139,7 @@ CONTAINS
 
     INTEGER,              INTENT(in)    :: iLevel
     REAL(DP),             INTENT(in)    :: Time
-    TYPE(amrex_multifab), INTENT(in)    :: MF_src(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in)    :: MF_src(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_dst
 
     INTEGER, PARAMETER :: sComp = 1, dComp = 1
@@ -179,11 +175,8 @@ CONTAINS
     ( iLevel, t_old, t_new, t, MF_old, MF_new, MF )
 
     INTEGER,              INTENT(in)    :: iLevel
-    REAL(DP),             INTENT(in)    :: t_old(0:nMaxLevels-1), &
-                                           t_new(0:nMaxLevels-1), &
-                                           t
-    TYPE(amrex_multifab), INTENT(in)    :: MF_old(0:nMaxLevels-1), &
-                                           MF_new(0:nMaxLevels-1)
+    REAL(DP),             INTENT(in)    :: t_old(0:), t_new(0:), t
+    TYPE(amrex_multifab), INTENT(in)    :: MF_old(0:), MF_new(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF
 
     CALL amrex_fillcoarsepatch &
@@ -201,7 +194,7 @@ CONTAINS
 
     INTEGER,              INTENT(in)    :: iLevel
     REAL(DP),             INTENT(in)    :: Time
-    TYPE(amrex_multifab), INTENT(inout) :: MF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(inout) :: MF(0:)
 
     INTEGER, PARAMETER :: sComp = 1, dComp = 1
 

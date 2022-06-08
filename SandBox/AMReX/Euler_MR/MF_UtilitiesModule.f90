@@ -34,7 +34,6 @@ MODULE MF_UtilitiesModule
     iLeaf_MFM
   USE InputParsingModule, ONLY: &
     nLevels, &
-    nMaxLevels, &
     UseTiling, &
     swX
   USE MF_MeshModule, ONLY: &
@@ -185,7 +184,7 @@ CONTAINS
     ( MF, iField, swXX_Option, WriteToFile_Option, FileName_Option )
 
     INTEGER             , INTENT(in) :: iField
-    TYPE(amrex_multifab), INTENT(in) :: MF(0:nMaxLevels-1)
+    TYPE(amrex_multifab), INTENT(in) :: MF(0:)
     INTEGER             , INTENT(in), OPTIONAL :: swXX_Option(3)
     LOGICAL             , INTENT(in), OPTIONAL :: WriteToFile_Option
     CHARACTER(*)        , INTENT(in), OPTIONAL :: FileName_Option
