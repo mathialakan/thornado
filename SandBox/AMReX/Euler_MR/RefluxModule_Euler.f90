@@ -111,6 +111,9 @@ CONTAINS
     CALL MultiplyWithMetric( SqrtGm(FineLevel-1), MF_uGF(FineLevel-1), nGF, -1 )
     CALL MultiplyWithMetric( SqrtGm(FineLevel-1), MF    (FineLevel-1), nCF, -1 )
 
+    CALL amrex_multifab_destroy( SqrtGm(FineLevel-1) )
+    CALL amrex_multifab_destroy( SqrtGm(FineLevel  ) )
+
   END SUBROUTINE Reflux_Euler_MF_SingleLevel
 
 
