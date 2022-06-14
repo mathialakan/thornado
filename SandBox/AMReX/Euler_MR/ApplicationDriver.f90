@@ -40,7 +40,6 @@ PROGRAM ApplicationDriver
     UpdateFluid_SSPRK_MF
   USE InputParsingModule, ONLY: &
     nLevels, &
-    nMaxLevels, &
     StepNo, &
     t_end, &
     t_new, &
@@ -214,7 +213,7 @@ CONTAINS
              ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
 
       CALL WriteFieldsAMReX_Checkpoint &
-             ( StepNo, nMaxLevels, dt, t_new, &
+             ( StepNo, nLevels, dt, t_new, &
                MF_uGF % BA % P, &
                MF_uGF % P, &
                MF_uCF % P )
