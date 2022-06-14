@@ -210,13 +210,13 @@ CONTAINS
       indHi = nDOFX * iCF_D
 
       GradD = ( (   uCF(iX1+1,iX2,iX3,indLo:indHi) &
-                  - uCF(iX1-1,iX2,iX3,indLo:indHi) ) &
-                / ( Two * MeshX(1) % Width(iX1) ) )**2
+                  - uCF(iX1-1,iX2,iX3,indLo:indHi) ))**2! &
+!                / ( Two * MeshX(1) % Width(iX1) ) )**2
 
       GradD = GradD &
                 + ( (   uCF(iX1,iX2+1,iX3,indLo:indHi) &
-                      - uCF(iX1,iX2-1,iX3,indLo:indHi) ) &
-                    / ( Two * MeshX(2) % Width(iX2) ) )**2
+                      - uCF(iX1,iX2-1,iX3,indLo:indHi) ) )**2! &
+!                    / ( Two * MeshX(2) % Width(iX2) ) )**2
 
       GradD = SQRT( GradD )
 
