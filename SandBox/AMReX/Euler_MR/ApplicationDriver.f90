@@ -5,9 +5,14 @@ PROGRAM ApplicationDriver
   USE amrex_parallel_module, ONLY: &
     amrex_parallel_ioprocessor, &
     amrex_parallel_communicator
+  USE amrex_amrcore_module, ONLY: &
+   amrex_regrid, &
+   amrex_get_numlevels
 
   ! --- thornado Modules ---
 
+  USE MF_GeometryModule, ONLY: &
+    ApplyBoundaryConditions_Geometry_MF
   USE UnitsModule, ONLY: &
     UnitsDisplay
   USE TimersModule_Euler, ONLY: &
@@ -32,6 +37,8 @@ PROGRAM ApplicationDriver
   USE MF_Euler_UtilitiesModule, ONLY: &
     ComputeTimeStep_Euler_MF, &
     ComputeFromConserved_Euler_MF
+  USE MF_Euler_PositivityLimiterModule, ONLY: &
+    ApplyPositivityLimiter_Euler_MF
   USE InputOutputModuleAMReX, ONLY: &
     WriteFieldsAMReX_PlotFile, &
     WriteFieldsAMReX_Checkpoint
@@ -39,6 +46,8 @@ PROGRAM ApplicationDriver
     ComputeTally_Euler_MF
   USE MF_TimeSteppingModule_SSPRK, ONLY: &
     UpdateFluid_SSPRK_MF
+  USE AverageDownModule, ONLY: &
+    AverageDownTo
   USE InputParsingModule, ONLY: &
     nLevels, &
     StepNo, &
@@ -54,6 +63,7 @@ PROGRAM ApplicationDriver
     t_chk, &
     dt_wrt, &
     dt_chk, &
+    UseAMR, &
     DEBUG
   USE MF_Euler_TimersModule, ONLY: &
     TimeIt_AMReX_Euler, &
@@ -66,7 +76,7 @@ PROGRAM ApplicationDriver
 
   INCLUDE 'mpif.h'
 
-  INTEGER  :: iErr
+  INTEGER  :: iLevel, iErr
   LOGICAL  :: wrt, chk
   REAL(DP) :: Timer_Evolution
 
@@ -89,6 +99,68 @@ PROGRAM ApplicationDriver
     StepNo = StepNo + 1
 
     t_old = t_new
+
+    IF( DEBUG )THEN
+
+      CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+    END IF
+
+    IF( UseAMR )THEN
+
+      IF( MOD( StepNo(0), 10 ) .EQ. 0 )THEN
+
+        IF( amrex_parallel_ioprocessor() )THEN
+
+          WRITE(*,*)
+          WRITE(*,'(6x,A)') 'Regridding'
+          WRITE(*,*)
+          WRITE(*,'(6x,A,I2.2)') 'nLevels (before regrid): ', nLevels
+
+        END IF
+
+        DO iLevel = 0, nLevels
+
+          IF( iLevel .LT. nLevels-1 ) &
+            CALL amrex_regrid( iLevel, t_new(iLevel) )
+
+        END DO
+
+        nLevels = amrex_get_numlevels()
+
+        IF( DEBUG )THEN
+
+          CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+          IF( amrex_parallel_ioprocessor() )THEN
+
+            WRITE(*,'(6x,A,I2.2)') 'nLevels (after regrid): ', nLevels
+            WRITE(*,*) 'CALL ApplyBoundaryConditions_Geometry_MF'
+
+          END IF
+
+        END IF
+
+        CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
+
+        IF( DEBUG )THEN
+
+          CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+          IF( amrex_parallel_ioprocessor() )THEN
+
+            WRITE(*,*) 'CALL ApplyPositivityLimiter_Euler_MF'
+            WRITE(*,*)
+
+          END IF
+
+        END IF
+
+        CALL ApplyPositivityLimiter_Euler_MF( MF_uGF, MF_uCF, MF_uDF )
+
+      END IF ! MOD( StepNo(0), 10 ) .EQ. 0
+
+    END IF ! UseAMR
 
     IF( DEBUG )THEN
 

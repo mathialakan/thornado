@@ -8,11 +8,6 @@ MODULE MF_TimeSteppingModule_SSPRK
     amrex_multifab, &
     amrex_multifab_build, &
     amrex_multifab_destroy
-  USE amrex_amrcore_module, ONLY: &
-    amrex_regrid, &
-    amrex_get_numlevels
-  USE amrex_parallel_module, ONLY: &
-    amrex_parallel_ioprocessor
 
   ! --- thornado Modules ---
 
@@ -41,8 +36,6 @@ MODULE MF_TimeSteppingModule_SSPRK
     MF_uCF, &
     MF_uDF, &
     MF_OffGridFlux_Euler
-  USE MF_GeometryModule, ONLY: &
-    ApplyBoundaryConditions_Geometry_MF
   USE AverageDownModule, ONLY: &
     AverageDownTo
   USE InputParsingModule, ONLY: &
@@ -54,9 +47,7 @@ MODULE MF_TimeSteppingModule_SSPRK
     nStages, &
     do_reflux, &
     t_new, &
-    dt, &
-    UseAMR, &
-    StepNo
+    dt
   USE RefluxModule_Euler, ONLY: &
     Reflux_Euler_MF
   USE MF_Euler_TimersModule, ONLY: &
@@ -142,36 +133,9 @@ CONTAINS
 
     nCompCF = nDOFX * nCF
 
-    IF( UseAMR )THEN
-
-      IF( MOD( StepNo(0), 100 ) .EQ. 0 )THEN
-
-        IF( amrex_parallel_ioprocessor() )THEN
-
-          WRITE(*,*)
-          WRITE(*,'(6x,A)') 'Regridding'
-          WRITE(*,*)
-
-        END IF
-
-        DO iLevel = 0, nLevels
-
-          IF( iLevel .LT. nLevels-1 ) &
-            CALL amrex_regrid( iLevel, t_new(iLevel) )
-
-        END DO
-
-        nLevels = amrex_get_numlevels()
-
-        CALL ApplyBoundaryConditions_Geometry_MF( MF_uGF )
-
-      END IF
-
-    END IF ! UseAMR
-
     DO iS = 1, nStages
 
-      DO iLevel = 0, nMaxLevels-1
+      DO iLevel = 0, nLevels-1
 
         CALL amrex_multifab_build &
                ( MF_U(iS,iLevel), MF_uCF(iLevel) % BA, &
@@ -224,7 +188,8 @@ CONTAINS
 
         END DO
 
-        IF( do_reflux ) CALL Reflux_Euler_MF( MF_uGF, MF_D(iS,:) )
+        IF( nLevels .GT. 1 .AND. do_reflux ) &
+          CALL Reflux_Euler_MF( MF_uGF, MF_D(iS,:) )
 
       END IF ! a(:,iS) .NE. Zero OR w(iS) .NE. Zero
 
