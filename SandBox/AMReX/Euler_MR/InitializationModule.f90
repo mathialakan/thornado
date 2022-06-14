@@ -16,7 +16,8 @@ MODULE InitializationModule
     amrex_amrcore_init, &
     amrex_init_virtual_functions, &
     amrex_init_from_scratch, &
-    amrex_ref_ratio
+    amrex_ref_ratio, &
+    amrex_get_numlevels
   USE amrex_boxarray_module, ONLY: &
     amrex_boxarray
   USE amrex_distromap_module, ONLY: &
@@ -126,6 +127,7 @@ MODULE InitializationModule
     FillCoarsePatch
   USE InputParsingModule, ONLY: &
     InitializeParameters, &
+    nLevels, &
     nMaxLevels, &
     swX, &
     StepNo, &
@@ -325,6 +327,7 @@ CONTAINS
     IF( iRestart .LT. 0 )THEN
 
       CALL amrex_init_from_scratch( 0.0_DP )
+      nLevels = amrex_get_numlevels()
 
     ELSE
 
