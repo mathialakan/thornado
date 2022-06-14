@@ -3,7 +3,8 @@ PROGRAM ApplicationDriver
   ! --- AMReX Modules ---
 
   USE amrex_parallel_module, ONLY: &
-    amrex_parallel_ioprocessor
+    amrex_parallel_ioprocessor, &
+    amrex_parallel_communicator
 
   ! --- thornado Modules ---
 
@@ -52,7 +53,8 @@ PROGRAM ApplicationDriver
     t_wrt, &
     t_chk, &
     dt_wrt, &
-    dt_chk
+    dt_chk, &
+    DEBUG
   USE MF_Euler_TimersModule, ONLY: &
     TimeIt_AMReX_Euler, &
     FinalizeTimers_AMReX_Euler, &
@@ -64,6 +66,7 @@ PROGRAM ApplicationDriver
 
   INCLUDE 'mpif.h'
 
+  INTEGER  :: iErr
   LOGICAL  :: wrt, chk
   REAL(DP) :: Timer_Evolution
 
@@ -87,6 +90,15 @@ PROGRAM ApplicationDriver
 
     t_old = t_new
 
+    IF( DEBUG )THEN
+
+      CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+      IF( amrex_parallel_ioprocessor() ) &
+        WRITE(*,*) 'CALL ComputeTimeStep_Euler_MF'
+
+    END IF
+
     CALL ComputeTimeStep_Euler_MF( MF_uGF, MF_uCF, CFL, dt )
 
     dt = MINVAL( dt )
@@ -100,6 +112,15 @@ PROGRAM ApplicationDriver
       dt = t_end - t_old
 
       t_new = t_end
+
+    END IF
+
+    IF( DEBUG )THEN
+
+      CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+      IF( amrex_parallel_ioprocessor() ) &
+        WRITE(*,*) 'CALL UpdateFluid_SSPRK_MF'
 
     END IF
 
@@ -164,6 +185,15 @@ CONTAINS
 
     IF( wrt )THEN
 
+      IF( DEBUG )THEN
+
+        CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+        IF( amrex_parallel_ioprocessor() ) &
+          WRITE(*,*) 'CALL WritePlotFile'
+
+      END IF
+
       CALL ComputeFromConserved_Euler_MF &
              ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
 
@@ -208,6 +238,15 @@ CONTAINS
     END IF
 
     IF( chk )THEN
+
+      IF( DEBUG )THEN
+
+        CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+        IF( amrex_parallel_ioprocessor() ) &
+          WRITE(*,*) 'CALL WriteCheckpointFile'
+
+      END IF
 
       CALL ComputeFromConserved_Euler_MF &
              ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
