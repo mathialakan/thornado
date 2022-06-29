@@ -45,8 +45,6 @@ extern "C"
     chk_file = "chk";
     pp.query("CheckpointFileBaseName",chk_file);
 
-    chk_file = chk_file + "_";
-
     const std::string& checkpointname
                          = amrex::Concatenate( chk_file, StepNo[0], 8 );
 
@@ -144,8 +142,6 @@ extern "C"
     chk_file = "chk";
     pp.query("CheckpointFileBaseName",chk_file);
 
-    chk_file = chk_file + "_";
-
     std::stringstream sChkFile;
     sChkFile << chk_file << std::setw(8) << std::setfill('0') << iChkFile;
     restart_chkfile = sChkFile.str();
@@ -231,8 +227,6 @@ extern "C"
     ParmParse pp("thornado");
     chk_file = "chk";
     pp.query("CheckpointFileBaseName",chk_file);
-
-    chk_file = chk_file + "_";
 
     std::stringstream sChkFile;
 
