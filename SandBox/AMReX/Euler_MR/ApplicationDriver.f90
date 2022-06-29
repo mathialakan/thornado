@@ -110,12 +110,25 @@ PROGRAM ApplicationDriver
 
       IF( MOD( StepNo(0), 10 ) .EQ. 0 )THEN
 
+        IF( DEBUG )THEN
+
+          CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+          IF( amrex_parallel_ioprocessor() )THEN
+
+            WRITE(*,*)
+            WRITE(*,'(6x,A,I2.2)') 'nLevels (before regrid): ', nLevels
+            WRITE(*,*)
+
+          END IF
+
+        END IF
+
         IF( amrex_parallel_ioprocessor() )THEN
 
           WRITE(*,*)
           WRITE(*,'(6x,A)') 'Regridding'
           WRITE(*,*)
-          WRITE(*,'(6x,A,I2.2)') 'nLevels (before regrid): ', nLevels
 
         END IF
 
@@ -134,8 +147,11 @@ PROGRAM ApplicationDriver
 
           IF( amrex_parallel_ioprocessor() )THEN
 
+            WRITE(*,*)
             WRITE(*,'(6x,A,I2.2)') 'nLevels (after regrid): ', nLevels
+            WRITE(*,*)
             WRITE(*,*) 'CALL ApplyBoundaryConditions_Geometry_MF'
+            WRITE(*,*)
 
           END IF
 
@@ -149,6 +165,7 @@ PROGRAM ApplicationDriver
 
           IF( amrex_parallel_ioprocessor() )THEN
 
+            WRITE(*,*)
             WRITE(*,*) 'CALL ApplyPositivityLimiter_Euler_MF'
             WRITE(*,*)
 
@@ -200,7 +217,7 @@ PROGRAM ApplicationDriver
 
     IF( amrex_parallel_ioprocessor() )THEN
 
-      IF( MOD( StepNo(0), iCycleD ) .EQ. 0 )THEN
+      IF( ( MOD( StepNo(0), iCycleD ) .EQ. 0 ) .OR. DEBUG )THEN
 
         WRITE(*,'(8x,A8,I8.8,A5,ES13.6E3,1x,A,A6,ES13.6E3,1x,A)') &
           'StepNo: ', StepNo(0), ' t = ', t_new(0) / UnitsDisplay % TimeUnit, &
