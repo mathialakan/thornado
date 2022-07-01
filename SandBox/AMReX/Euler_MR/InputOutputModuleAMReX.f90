@@ -120,13 +120,13 @@ MODULE InputOutputModuleAMReX
     END SUBROUTINE WriteFieldsAMReX_Checkpoint
 
     SUBROUTINE ReadHeaderAndBoxArrayData &
-                 ( FinestLevel, StepNo, dt, time, &
+                 ( FinestLevelArr, StepNo, dt, Time, &
                    pBA, pDM, iChkFile ) BIND(c)
       IMPORT
       IMPLICIT NONE
-      INTEGER(c_int), INTENT(out) :: FinestLevel
+      INTEGER(c_int), INTENT(out) :: FinestLevelArr(*)
       INTEGER(c_int), INTENT(out) :: StepNo(*)
-      REAL(DP),       INTENT(out) :: dt(*), time(*)
+      REAL(DP),       INTENT(out) :: dt(*), Time(*)
       TYPE(c_ptr),    INTENT(out) :: pBA(*), pDM(*)
       INTEGER(c_int), VALUE       :: iChkFile
     END SUBROUTINE ReadHeaderAndBoxArrayData
@@ -436,6 +436,8 @@ CONTAINS
     TYPE(amrex_boxarray)  :: BA  (0:nMaxLevels-1)
     TYPE(amrex_geometry)  :: GEOM(0:nMaxLevels-1)
 
+    INTEGER :: FinestLevelArr(0:0) ! Hack
+
     amrcore = amrex_get_amrcore()
 
     BX = amrex_box( [ 0, 0, 0 ], [ nX(1)-1, nX(2)-1, nX(3)-1 ] )
@@ -456,7 +458,10 @@ CONTAINS
     pDM(0:nMaxLevels-1) = DM(0:nMaxLevels-1) % P
 
     CALL ReadHeaderAndBoxArrayData &
-           ( nLevels, StepNo, dt, t_new, pBA, pDM, iRestart )
+           ( FinestLevelArr, StepNo, dt, t_new, pBA, pDM, iRestart )
+
+    FinestLevel = FinestLevelArr(0)
+    nLevels = FinestLevel + 1
 
     DO iLevel = 0, nLevels-1
 
@@ -503,8 +508,8 @@ CONTAINS
     pGF(0:nLevels-1) = MF_uGF(0:nLevels-1) % P
     pCF(0:nLevels-1) = MF_uCF(0:nLevels-1) % P
 
-    CALL ReadMultiFabData( nLevels-1, pGF, 0, iRestart )
-    CALL ReadMultiFabData( nLevels-1, pCF, 1, iRestart )
+    CALL ReadMultiFabData( FinestLevel, pGF, 0, iRestart )
+    CALL ReadMultiFabData( FinestLevel, pCF, 1, iRestart )
 
     DO iLevel = 0, nLevels-1
 
@@ -513,7 +518,7 @@ CONTAINS
 
     END DO
 
-    CALL amrex_fi_set_finest_level( nLevels-1, amrcore )
+    CALL amrex_fi_set_finest_level( FinestLevel, amrcore )
 
   END SUBROUTINE ReadCheckpointFile
 

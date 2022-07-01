@@ -133,10 +133,12 @@ extern "C"
   } // End of WriteCheckpointFile function
 
   void readheaderandboxarraydata
-         ( int nLevels, int stepno[],
-	   Real dt[], Real time[],
+         ( int FinestLevelArr[], int StepNo[],
+	   Real dt[], Real Time[],
            BoxArray** ba, DistributionMapping** dm, int iChkFile )
   {
+
+    int FinestLevel;
 
     ParmParse pp("thornado");
     chk_file = "chk";
@@ -165,9 +167,10 @@ extern "C"
     // Read in title line
     std::getline( is, line );
 
-    // Read in nLevels
-    is >> nLevels;
+    // Read in FinestLevel
+    is >> FinestLevel;
     GotoNextLine( is );
+    FinestLevelArr[0] = FinestLevel;
 
     // Read in array of istep
     std::getline( is, line );
@@ -176,7 +179,7 @@ extern "C"
         int i = 0;
         while (lis >> word)
 	{
-          stepno[i++] = std::stoi(word);
+          StepNo[i++] = std::stoi(word);
         }
     }
 
@@ -198,12 +201,12 @@ extern "C"
       int i = 0;
       while( lis >> word )
       {
-        time[i++] = std::stod( word );
+        Time[i++] = std::stod( word );
       }
     }
 
     // Read in level 'iLevel' BoxArray from Header
-    for( int iLevel = 0; iLevel <= nLevels; ++iLevel )
+    for( int iLevel = 0; iLevel <= FinestLevel; ++iLevel )
     {
 
       BoxArray& ba1 = *ba[iLevel];
