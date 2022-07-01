@@ -140,6 +140,8 @@ PROGRAM ApplicationDriver
         END DO
 
         nLevels = amrex_get_numlevels()
+        t_old   = t_old(0)
+        t_new   = t_new(0)
 
         IF( DEBUG )THEN
 
