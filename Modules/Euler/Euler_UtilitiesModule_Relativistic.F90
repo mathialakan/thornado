@@ -128,6 +128,8 @@ CONTAINS
     INTEGER :: N, ErrorExists
     INTEGER :: iNX, iErr(SIZE(uD))
 
+    ErrorExists = 0
+
     N = SIZE(uD)
 
     CALL TimersStart_Euler( Timer_Euler_ComputePrimitive )
