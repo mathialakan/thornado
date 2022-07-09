@@ -44,9 +44,7 @@ MODULE FinalizationModule
     t_old, &
     t_new, &
     lo_bc, &
-    hi_bc, &
-    lo_bc_uCF, &
-    hi_bc_uCF
+    hi_bc
   USE MF_Euler_TimersModule, ONLY: &
     TimersStart_AMReX_Euler, &
     TimersStop_AMReX_Euler, &
@@ -99,8 +97,6 @@ CONTAINS
 
     CALL FinalizeReferenceElementX
 
-    DEALLOCATE( hi_bc_uCF )
-    DEALLOCATE( lo_bc_uCF )
     DEALLOCATE( hi_bc )
     DEALLOCATE( lo_bc )
 

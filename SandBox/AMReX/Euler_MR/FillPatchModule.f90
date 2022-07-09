@@ -39,9 +39,7 @@ MODULE FillPatchModule
     t_old, &
     t_new, &
     lo_bc, &
-    hi_bc, &
-    lo_bc_uCF, &
-    hi_bc_uCF
+    hi_bc
 
   IMPLICIT NONE
   PRIVATE
@@ -230,39 +228,41 @@ CONTAINS
     INTEGER              :: pLo(4), pHi(4)
     REAL(DP), CONTIGUOUS, POINTER :: p(:,:,:,:)
 
-    IF( .NOT. amrex_is_all_periodic() )THEN
+    RETURN
 
-      GEOM = pGEOM
-      MF   = pMF
-
-      !$OMP PARALLEL PRIVATE(MFI,p,pLo,pHi)
-      CALL amrex_mfiter_build( MFI, MF, tiling = UseTiling )
-
-      DO WHILE( MFI % next() )
-
-        p => MF % DataPtr( MFI )
-
-        ! Check if part of this box is outside the domain
-        IF( .NOT. GEOM % DOMAIN % CONTAINS( p ) )THEN
-
-          pLo = LBOUND( p )
-          pHi = UBOUND( p )
-
-          CALL amrex_filcc &
-                 ( p, pLo, pHi, &
-                   GEOM % DOMAIN % lo, GEOM % DOMAIN % hi, &
-                   GEOM % dX, &
-                   GEOM % get_physical_location( pLo ), &
-                   lo_bc_uCF, hi_bc_uCF)
-
-        END IF
-
-      END DO
-      !$OMP END PARALLEL
-
-      CALL amrex_mfiter_destroy( MFI )
-
-    END IF
+!!$    IF( .NOT. amrex_is_all_periodic() )THEN
+!!$
+!!$      GEOM = pGEOM
+!!$      MF   = pMF
+!!$
+!!$      !$OMP PARALLEL PRIVATE(MFI,p,pLo,pHi)
+!!$      CALL amrex_mfiter_build( MFI, MF, tiling = UseTiling )
+!!$
+!!$      DO WHILE( MFI % next() )
+!!$
+!!$        p => MF % DataPtr( MFI )
+!!$
+!!$        ! Check if part of this box is outside the domain
+!!$        IF( .NOT. GEOM % DOMAIN % CONTAINS( p ) )THEN
+!!$
+!!$          pLo = LBOUND( p )
+!!$          pHi = UBOUND( p )
+!!$
+!!$          CALL amrex_filcc &
+!!$                 ( p, pLo, pHi, &
+!!$                   GEOM % DOMAIN % lo, GEOM % DOMAIN % hi, &
+!!$                   GEOM % dX, &
+!!$                   GEOM % get_physical_location( pLo ), &
+!!$                   lo_bc_uCF, hi_bc_uCF)
+!!$
+!!$        END IF
+!!$
+!!$      END DO
+!!$      !$OMP END PARALLEL
+!!$
+!!$      CALL amrex_mfiter_destroy( MFI )
+!!$
+!!$    END IF
 
   END SUBROUTINE FillPhysicalBC_uCF
 

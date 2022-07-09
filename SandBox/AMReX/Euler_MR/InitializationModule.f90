@@ -167,8 +167,6 @@ MODULE InitializationModule
     Min_2, &
     lo_bc, &
     hi_bc, &
-    lo_bc_uCF, &
-    hi_bc_uCF, &
     ProgramName, &
     TagCriteria, &
     nRefinementBuffer, &
@@ -215,15 +213,11 @@ CONTAINS
     END IF
     CALL CreateFields_MF
 
-    ALLOCATE( lo_bc    (1:amrex_spacedim,1) )
-    ALLOCATE( hi_bc    (1:amrex_spacedim,1) )
-    ALLOCATE( lo_bc_uCF(1:amrex_spacedim,1:nDOFX*nCF) )
-    ALLOCATE( hi_bc_uCF(1:amrex_spacedim,1:nDOFX*nCF) )
+    ALLOCATE( lo_bc(1:amrex_spacedim,1) )
+    ALLOCATE( hi_bc(1:amrex_spacedim,1) )
 
-    lo_bc     = amrex_bc_bogus
-    hi_bc     = amrex_bc_bogus
-    lo_bc_uCF = amrex_bc_foextrap
-    hi_bc_uCF = amrex_bc_foextrap
+    lo_bc = amrex_bc_bogus
+    hi_bc = amrex_bc_bogus
 
     CALL InitializePolynomialBasisX_Lagrange
     CALL InitializePolynomialBasisX_Legendre
