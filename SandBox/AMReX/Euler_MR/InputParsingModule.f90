@@ -18,7 +18,6 @@ MODULE InputParsingModule
     nDimsX
   USE UnitsModule, ONLY: &
     ActivateUnitsDisplay, &
-    DescribeUnitsDisplay, &
     UnitsDisplay
   USE GeometryFieldsModule, ONLY: &
     CoordinateSystem
@@ -308,10 +307,10 @@ CONTAINS
       CALL PP % query   ( 'blocking_factor_z', BlockingFactorX3  )
       CALL PP % get     ( 'max_level'        , MaxLevel          )
       CALL PP % query   ( 'UseTiling'        , UseTiling         )
-      CALL PP % query   ( 'do_reflux'        , do_reflux         )
       CALL PP % getarr  ( 'ref_ratio'        , RefinementRatio   )
-      CALL PP % query   ( 'UseAMR'           , UseAMR            )
       IF( MaxLevel .GT. 0 )THEN
+        CALL PP % query ( 'UseAMR'           , UseAMR            )
+        CALL PP % query ( 'do_reflux'        , do_reflux         )
         CALL PP % getarr( 'TagCriteria'      , TagCriteria       )
         CALL PP % getarr( 'n_error_buf'      , nRefinementBuffer )
       END IF
@@ -332,9 +331,6 @@ CONTAINS
              xR_Option          = xR,                  &
              bcX_Option         = bcX,                 &
              Verbose_Option     = amrex_parallel_ioprocessor() )
-
-    IF( amrex_parallel_ioprocessor() ) &
-      CALL DescribeUnitsDisplay
 
     IF( nDimsX .NE. amrex_spacedim ) &
       CALL DescribeError_Euler_MF &

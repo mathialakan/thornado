@@ -63,6 +63,8 @@ MODULE InitializationModule
     nDOFX_X1
   USE ReferenceElementModuleX_Lagrange, ONLY: &
     InitializeReferenceElementX_Lagrange
+  USE UnitsModule, ONLY: &
+    DescribeUnitsDisplay
   USE MeshModule, ONLY: &
     MeshX
   USE GeometryFieldsModule, ONLY: &
@@ -205,8 +207,12 @@ CONTAINS
 
     CALL InitializeParameters
 
-    IF( amrex_parallel_ioprocessor() ) CALL DescribeProgramHeaderX
+    IF( amrex_parallel_ioprocessor() )THEN
 
+      CALL DescribeUnitsDisplay
+      CALL DescribeProgramHeaderX
+
+    END IF
     CALL CreateFields_MF
 
     ALLOCATE( lo_bc    (1:amrex_spacedim,1) )
