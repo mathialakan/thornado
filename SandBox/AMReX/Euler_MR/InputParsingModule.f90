@@ -162,19 +162,13 @@ CONTAINS
       CALL PP % query ( 'UsePhysicalUnits', UsePhysicalUnits      )
     CALL amrex_parmparse_destroy( PP )
 
-    IF( iCycleW * dt_wrt .GT. Zero )THEN
-
+    IF( iCycleW * dt_wrt .GT. Zero ) &
       CALL DescribeError_Euler_MF &
              ( 101, Int_Option = [ iCycleW ], Real_Option = [ dt_wrt ] )
 
-    END IF
-
-    IF( iCycleChk * dt_chk .GT. Zero )THEN
-
+    IF( iCycleChk * dt_chk .GT. Zero ) &
       CALL DescribeError_Euler_MF &
              ( 102, Int_Option = [ iCycleChk ], Real_Option = [ dt_chk ] )
-
-    END IF
 
     CFL = CFL / ( DBLE( amrex_spacedim ) * ( Two * DBLE( nNodes ) - One ) )
 
