@@ -99,7 +99,7 @@ CONTAINS
     IF( PRESENT( FileName_Option ) ) FileName = TRIM( FileName_Option )
 
     WRITE(FMT,'(A,I2.2,A,I2.2,A,I2.2,A,I3.3,A)') &
-      '(I2.2,3I4.3,3ES25.16E3,', &
+      '(I2.2,3I5.3,3ES25.16E3,', &
       nNodesX(1),  'ES25.16E3,', &
       nNodesX(2),  'ES25.16E3,', &
       nNodesX(3),  'ES25.16E3,', &
