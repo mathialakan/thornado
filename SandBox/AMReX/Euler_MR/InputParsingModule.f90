@@ -228,9 +228,7 @@ CONTAINS
 
     ELSE
 
-      CALL DescribeError_Euler_MF &
-             ( 103, Message_Option = 'Invalid CoordSys:', &
-                      Int_Option = [ coord_sys ] )
+      CALL DescribeError_Euler_MF( 103, Int_Option = [ coord_sys ] )
 
     END IF
 

@@ -41,7 +41,10 @@ CONTAINS
       CASE( 101 )
 
         WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: InputParsingModule'
         WRITE(*,'(2x,A)') &
@@ -59,7 +62,10 @@ CONTAINS
       CASE( 102 )
 
         WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: InputParsingModule'
         WRITE(*,'(2x,A)') &
@@ -76,13 +82,18 @@ CONTAINS
 
       CASE( 103 )
 
+        WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: InputParsingModule'
         WRITE(*,'(2x,A)') &
           'SUBROUTINE: InitializeParameters'
         WRITE(*,*)
-        WRITE(*,'(2x,A,1x,I3.2)') TRIM( Message ), Int_Option(1)
+        WRITE(*,'(2x,A,1x,I3.2)') 'Invalid CoordSys:', Int_Option(1)
+        WRITE(*,*)
         WRITE(*,'(2x,A)') 'Valid choices'
         WRITE(*,'(2x,A)') '-------------'
         WRITE(*,'(2x,A)') '  0 (CARTESIAN)'
@@ -94,7 +105,11 @@ CONTAINS
 
       CASE( 104 )
 
+        WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: InputParsingModule'
         WRITE(*,'(2x,A)') &
@@ -111,7 +126,10 @@ CONTAINS
       CASE( 201 )
 
         WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: MF_InitializationModule_Relativistic_IDEAL'
         WRITE(*,'(2x,A)') &
@@ -133,7 +151,10 @@ CONTAINS
       CASE( 202 )
 
         WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: MF_InitializationModule_Relativistic_IDEAL'
         WRITE(*,'(2x,A)') &
@@ -152,7 +173,10 @@ CONTAINS
       CASE( 203 )
 
         WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: MF_InitializationModule_Relativistic_IDEAL'
         WRITE(*,'(2x,A)') &
@@ -171,7 +195,10 @@ CONTAINS
       CASE( 204 )
 
         WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: MF_InitializationModule_Relativistic_IDEAL'
         WRITE(*,'(2x,A)') &
@@ -190,7 +217,10 @@ CONTAINS
       CASE( 205 )
 
         WRITE(*,*)
+        WRITE(*,'(2x,A,A)') '-----------'
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
+        WRITE(*,'(2x,A,A)') '-----------'
+        WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'MODULE: MF_InitializationModule_Relativistic_IDEAL'
         WRITE(*,'(2x,A)') &
