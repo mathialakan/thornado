@@ -40,6 +40,7 @@ CONTAINS
 
       CASE( 101 )
 
+        WRITE(*,*)
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
         WRITE(*,'(2x,A)') &
           'MODULE: InputParsingModule'
@@ -49,11 +50,15 @@ CONTAINS
         WRITE(*,'(2x,A)') &
           'iCycleW and dt_wrt cannot both be greater than zero.'
         WRITE(*,*)
+        WRITE(*,'(2x,A9,I9.8)')      'iCycleW: ', Int_Option(1)
+        WRITE(*,'(2x,A9,ES24.16E3)') 'dt_wrt: ', Real_Option(1)
+        WRITE(*,*)
 
         CALL thornado_abort
 
       CASE( 102 )
 
+        WRITE(*,*)
         WRITE(*,'(2x,A,A)') 'FATAL ERROR'
         WRITE(*,'(2x,A)') &
           'MODULE: InputParsingModule'
@@ -62,6 +67,9 @@ CONTAINS
         WRITE(*,*)
         WRITE(*,'(2x,A)') &
           'iCycleChk and dt_chk cannot both be greater than zero.'
+        WRITE(*,*)
+        WRITE(*,'(2x,A11,I9.8)')      'iCycleChk: ', Int_Option(1)
+        WRITE(*,'(2x,A11,ES24.16E3)') 'dt_chk: ', Real_Option(1)
         WRITE(*,*)
 
         CALL thornado_abort

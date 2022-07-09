@@ -123,6 +123,8 @@ CONTAINS
 
     TYPE(amrex_parmparse) :: PP
 
+    ! --- debug Parameters debug.* ---
+
     DEBUG             = .FALSE.
     WriteNodalData    = .FALSE.
     NodalDataFileName = ''
@@ -162,13 +164,15 @@ CONTAINS
 
     IF( iCycleW * dt_wrt .GT. Zero )THEN
 
-      CALL DescribeError_Euler_MF( 101 )
+      CALL DescribeError_Euler_MF &
+             ( 101, Int_Option = [ iCycleW ], Real_Option = [ dt_wrt ] )
 
     END IF
 
     IF( iCycleChk * dt_chk .GT. Zero )THEN
 
-      CALL DescribeError_Euler_MF( 102 )
+      CALL DescribeError_Euler_MF &
+             ( 102, Int_Option = [ iCycleChk ], Real_Option = [ dt_chk ] )
 
     END IF
 
@@ -340,12 +344,9 @@ CONTAINS
     IF( amrex_parallel_ioprocessor() ) &
       CALL DescribeUnitsDisplay
 
-    IF( nDimsX .NE. amrex_spacedim )THEN
-
-      CALL DescribeError_Euler_MF( 104, &
-                                   Int_Option = [ nDimsX, amrex_spacedim ] )
-
-    END IF
+    IF( nDimsX .NE. amrex_spacedim ) &
+      CALL DescribeError_Euler_MF &
+             ( 104, Int_Option = [ nDimsX, amrex_spacedim ] )
 
     iOS_CPP = 0
 
