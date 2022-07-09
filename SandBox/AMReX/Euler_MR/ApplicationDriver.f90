@@ -118,7 +118,6 @@ PROGRAM ApplicationDriver
 
             WRITE(*,*)
             WRITE(*,'(6x,A,I2.2)') 'nLevels (before regrid): ', nLevels
-            WRITE(*,*)
 
           END IF
 
@@ -126,9 +125,7 @@ PROGRAM ApplicationDriver
 
         IF( amrex_parallel_ioprocessor() )THEN
 
-          WRITE(*,*)
           WRITE(*,'(6x,A)') 'Regridding'
-          WRITE(*,*)
 
         END IF
 
@@ -149,11 +146,9 @@ PROGRAM ApplicationDriver
 
           IF( amrex_parallel_ioprocessor() )THEN
 
-            WRITE(*,*)
             WRITE(*,'(6x,A,I2.2)') 'nLevels (after regrid): ', nLevels
             WRITE(*,*)
-            WRITE(*,*) 'CALL ApplyBoundaryConditions_Geometry_MF'
-            WRITE(*,*)
+            WRITE(*,'(A)') 'CALL ApplyBoundaryConditions_Geometry_MF'
 
           END IF
 
@@ -168,7 +163,7 @@ PROGRAM ApplicationDriver
           IF( amrex_parallel_ioprocessor() )THEN
 
             WRITE(*,*)
-            WRITE(*,*) 'CALL ApplyPositivityLimiter_Euler_MF'
+            WRITE(*,'(A)') 'CALL ApplyPositivityLimiter_Euler_MF'
             WRITE(*,*)
 
           END IF
@@ -186,7 +181,7 @@ PROGRAM ApplicationDriver
       CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
 
       IF( amrex_parallel_ioprocessor() ) &
-        WRITE(*,*) 'CALL ComputeTimeStep_Euler_MF'
+        WRITE(*,'(A)') 'CALL ComputeTimeStep_Euler_MF'
 
     END IF
 
@@ -211,7 +206,7 @@ PROGRAM ApplicationDriver
       CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
 
       IF( amrex_parallel_ioprocessor() ) &
-        WRITE(*,*) 'CALL UpdateFluid_SSPRK_MF'
+        WRITE(*,'(A)') 'CALL UpdateFluid_SSPRK_MF'
 
     END IF
 
@@ -281,7 +276,7 @@ CONTAINS
         CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
 
         IF( amrex_parallel_ioprocessor() ) &
-          WRITE(*,*) 'CALL WritePlotFile'
+          WRITE(*,'(A)') 'CALL WritePlotFile'
 
       END IF
 
@@ -335,7 +330,7 @@ CONTAINS
         CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
 
         IF( amrex_parallel_ioprocessor() ) &
-          WRITE(*,*) 'CALL WriteCheckpointFile'
+          WRITE(*,'(A)') 'CALL WriteCheckpointFile'
 
       END IF
 
