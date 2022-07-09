@@ -175,7 +175,7 @@ MODULE InitializationModule
     WriteFieldsAMReX_PlotFile, &
     ReadCheckpointFile
   USE AverageDownModule, ONLY: &
-    AverageDownTo
+    AverageDown
   USE Euler_MeshRefinementModule, ONLY: &
     InitializeMeshRefinement_Euler
   USE MF_Euler_TimersModule, ONLY: &
@@ -335,6 +335,8 @@ CONTAINS
 
     END IF
 
+    CALL AverageDown( MF_uGF, MF_uCF )
+
     t_old = t_new
     t_chk = t_new(0) + dt_chk
     t_wrt = t_new(0) + dt_wrt
@@ -426,13 +428,6 @@ CONTAINS
 
     CALL FillPatch( iLevel, t_new(iLevel), MF_uGF )
     CALL FillPatch( iLevel, t_new(iLevel), MF_uCF )
-
-    IF( iLevel .GT. 0 )THEN
-
-      CALL AverageDownTo( iLevel-1, MF_uGF )
-      CALL AverageDownTo( iLevel-1, MF_uCF )
-
-    END IF
 
     CALL DestroyMesh_MF( MeshX )
 
@@ -674,6 +669,7 @@ CONTAINS
       WRITE(*,'(4x,A,L)')     '             UseAMR: ', UseAMR
       WRITE(*,TRIM(RFMT))     '        TagCriteria: ', TagCriteria
       WRITE(*,TRIM(IFMT))     '  nRefinementBuffer: ', nRefinementBuffer
+      WRITE(*,*)
 
     END IF
 
