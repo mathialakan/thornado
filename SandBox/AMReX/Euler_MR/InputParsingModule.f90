@@ -10,12 +10,6 @@ MODULE InputParsingModule
     amrex_parmparse_destroy
   USE amrex_parallel_module, ONLY: &
     amrex_parallel_ioprocessor
-  USE amrex_init_module, ONLY: &
-    amrex_init, &
-    amrex_initialized
-  USE amrex_amr_module, ONLY: &
-    amrex_amrcore_init, &
-    amrex_amrcore_initialized
 
   ! --- thornado Modules ---
 
@@ -128,12 +122,6 @@ CONTAINS
   SUBROUTINE InitializeParameters
 
     TYPE(amrex_parmparse) :: PP
-
-    IF( .NOT. amrex_initialized() ) &
-      CALL amrex_init()
-
-    IF( .NOT. amrex_amrcore_initialized() ) &
-      CALL amrex_amrcore_init()
 
     DEBUG             = .FALSE.
     WriteNodalData    = .FALSE.
