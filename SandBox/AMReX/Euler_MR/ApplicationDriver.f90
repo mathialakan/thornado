@@ -118,14 +118,9 @@ PROGRAM ApplicationDriver
 
             WRITE(*,*)
             WRITE(*,'(6x,A,I2.2)') 'nLevels (before regrid): ', nLevels
+            WRITE(*,'(6x,A)') 'Regridding'
 
           END IF
-
-        END IF
-
-        IF( amrex_parallel_ioprocessor() )THEN
-
-          WRITE(*,'(6x,A)') 'Regridding'
 
         END IF
 
@@ -137,8 +132,11 @@ PROGRAM ApplicationDriver
         END DO
 
         nLevels = amrex_get_numlevels()
-        t_old   = t_old(0)
-        t_new   = t_new(0)
+
+        ! --- nLevels <= nMaxLevels; entire arrays t_old(0:nMaxLevels-1) and
+        !     t_new(0:nMaxLevels-1) must have valid data ---
+        t_old = t_old(0)
+        t_new = t_new(0)
 
         IF( DEBUG )THEN
 
@@ -170,6 +168,7 @@ PROGRAM ApplicationDriver
 
         END IF
 
+        ! --- Regridding may cause some cells to be un-physical ---
         CALL ApplyPositivityLimiter_Euler_MF( MF_uGF, MF_uCF, MF_uDF )
 
       END IF ! MOD( StepNo(0), 10 ) .EQ. 0
