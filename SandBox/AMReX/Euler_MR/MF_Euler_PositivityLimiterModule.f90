@@ -9,6 +9,9 @@ MODULE MF_Euler_PositivityLimiterModule
     amrex_mfiter, &
     amrex_mfiter_build, &
     amrex_mfiter_destroy
+  USE amrex_parallel_module, ONLY: &
+    amrex_parallel_communicator, &
+    amrex_parallel_ioprocessor
 
   ! --- thornado Modules ---
 
@@ -33,7 +36,12 @@ MODULE MF_Euler_PositivityLimiterModule
   USE InputParsingModule, ONLY: &
     nLevels, &
     UsePositivityLimiter, &
-    UseTiling
+    UseTiling, &
+    DEBUG
+!!$  USE AverageDownModule, ONLY: &
+!!$    AverageDown
+!!$  USE FillPatchModule, ONLY: &
+!!$    FillPatch
   USE MF_Euler_TimersModule, ONLY: &
     TimersStart_AMReX_Euler, &
     TimersStop_AMReX_Euler, &
@@ -55,18 +63,45 @@ CONTAINS
   SUBROUTINE ApplyPositivityLimiter_Euler_MF_MultipleLevels &
     ( MF_uGF, MF_uCF, MF_uDF )
 
-    TYPE(amrex_multifab), INTENT(in)    :: MF_uGF(0:)
+    TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:)
 
-    INTEGER :: iLevel
+    INTEGER, PARAMETER :: nCycles = 1
 
-    DO iLevel = 0, nLevels-1
+    INTEGER :: iCycle, iLevel, iErr
 
-      CALL ApplyPositivityLimiter_Euler_MF_SingleLevel &
-             ( iLevel, MF_uGF, MF_uCF, MF_uDF )
+    DO iCycle = 1, nCycles
 
-    END DO
+      DO iLevel = 0, nLevels-1
+
+        IF( DEBUG )THEN
+
+          CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+          IF( amrex_parallel_ioprocessor() )THEN
+
+            WRITE(*,'(2x,A,I3.3)') &
+              'CALL ApplyPositivityLimiter_Euler_MF_SingleLevel, iLevel: ', &
+              iLevel
+
+          END IF
+
+        END IF ! DEBUG
+
+        CALL ApplyPositivityLimiter_Euler_MF_SingleLevel &
+               ( iLevel, MF_uGF, MF_uCF, MF_uDF )
+
+!!$        CALL FillPatch( iLevel, 0.0_DP, MF_uGF, MF_uCF )
+
+      END DO ! iLevel
+
+      ! --- Ensure underlying coarse cells are consistent with
+      !     cells on refined level ---
+
+!!$      CALL AverageDown( MF_uGF, MF_uCF )
+
+    END DO ! iCycle
 
   END SUBROUTINE ApplyPositivityLimiter_Euler_MF_MultipleLevels
 
@@ -86,8 +121,8 @@ CONTAINS
     REAL(DP), CONTIGUOUS, POINTER :: uCF(:,:,:,:)
     REAL(DP), CONTIGUOUS, POINTER :: uDF(:,:,:,:)
 
-    REAL(DP), ALLOCATABLE :: U(:,:,:,:,:)
     REAL(DP), ALLOCATABLE :: G(:,:,:,:,:)
+    REAL(DP), ALLOCATABLE :: U(:,:,:,:,:)
     REAL(DP), ALLOCATABLE :: D(:,:,:,:,:)
 
     INTEGER :: iX_B0(3), iX_E0(3), iX_B1(3), iX_E1(3), iLo_MF(4)
