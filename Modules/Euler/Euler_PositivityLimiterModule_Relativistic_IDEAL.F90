@@ -639,7 +639,6 @@ CONTAINS
                             G(1,iX1,iX2,iX3,iGF_h_2), &
                             G(1,iX1,iX2,iX3,iGF_h_3) ] )
 
-
     END DO
     END DO
     END DO
