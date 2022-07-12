@@ -151,8 +151,6 @@ use mf_utilitiesmodule
     xR, &
     EquationOfState, &
     Gamma_IDEAL, &
-    Min_D_IDEAL, &
-    Min_P_IDEAL, &
     EosTableName, &
     UseSlopeLimiter, &
     BetaTVD, &
@@ -275,8 +273,6 @@ CONTAINS
       CALL InitializeEquationOfState &
                ( EquationOfState_Option = EquationOfState, &
                  Gamma_IDEAL_Option = Gamma_IDEAL, &
-                 Min_D_IDEAL_Option = Min_D_IDEAL, &
-                 Min_P_IDEAL_Option = Min_P_IDEAL, &
                  Verbose_Option = amrex_parallel_ioprocessor() )
 
       CALL InitializePositivityLimiter_Euler &
