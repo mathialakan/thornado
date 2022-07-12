@@ -240,7 +240,8 @@ CONTAINS
 
     CALL TimersStart_Euler( Timer_Euler_CP_CopyIn )
 
-    ITERATE = .TRUE.
+    ErrorExists = 0
+    ITERATE     = .TRUE.
 
 #if   defined( THORNADO_OMP_OL ) && !defined( THORNADO_EULER_NOGPU )
     !$OMP TARGET ENTER DATA &
