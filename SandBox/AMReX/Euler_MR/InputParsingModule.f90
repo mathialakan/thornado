@@ -292,9 +292,9 @@ CONTAINS
       BlockingFactorX3 = 8
 
     END IF
-    UseTiling = 0
-    do_reflux = 0
-    UseAMR    = 0
+    UseTiling = .FALSE.
+    do_reflux = .FALSE.
+    UseAMR    = .FALSE.
     CALL amrex_parmparse_build( PP, 'amr' )
       CALL PP % getarr  ( 'n_cell'           , nX                )
       CALL PP % query   ( 'max_grid_size_x'  , MaxGridSizeX1     )
@@ -304,14 +304,14 @@ CONTAINS
       CALL PP % query   ( 'blocking_factor_y', BlockingFactorX2  )
       CALL PP % query   ( 'blocking_factor_z', BlockingFactorX3  )
       CALL PP % get     ( 'max_level'        , MaxLevel          )
-      CALL PP % query   ( 'UseTiling'        , UseTiling         )
-      CALL PP % getarr  ( 'ref_ratio'        , RefinementRatio   )
       IF( MaxLevel .GT. 0 )THEN
         CALL PP % query ( 'UseAMR'           , UseAMR            )
         CALL PP % query ( 'do_reflux'        , do_reflux         )
         CALL PP % getarr( 'TagCriteria'      , TagCriteria       )
         CALL PP % getarr( 'n_error_buf'      , nRefinementBuffer )
       END IF
+      CALL PP % getarr  ( 'ref_ratio'        , RefinementRatio   )
+      CALL PP % query   ( 'UseTiling'        , UseTiling         )
     CALL amrex_parmparse_destroy( PP )
 
     MaxGridSizeX   = [ MaxGridSizeX1   , MaxGridSizeX2   , MaxGridSizeX3    ]
