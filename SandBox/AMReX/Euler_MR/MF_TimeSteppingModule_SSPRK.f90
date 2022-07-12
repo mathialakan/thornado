@@ -8,6 +8,9 @@ MODULE MF_TimeSteppingModule_SSPRK
     amrex_multifab, &
     amrex_multifab_build, &
     amrex_multifab_destroy
+  USE amrex_parallel_module, ONLY: &
+    amrex_parallel_communicator, &
+    amrex_parallel_ioprocessor
 
   ! --- thornado Modules ---
 
@@ -37,7 +40,7 @@ MODULE MF_TimeSteppingModule_SSPRK
     MF_uDF, &
     MF_OffGridFlux_Euler
   USE AverageDownModule, ONLY: &
-    AverageDownTo
+    AverageDown
   USE InputParsingModule, ONLY: &
     nLevels, &
     nMaxLevels, &
@@ -47,7 +50,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     nStages, &
     do_reflux, &
     t_new, &
-    dt
+    dt, &
+    DEBUG
   USE RefluxModule_Euler, ONLY: &
     Reflux_Euler_MF
   USE MF_Euler_TimersModule, ONLY: &
@@ -123,7 +127,7 @@ CONTAINS
     TYPE(amrex_multifab) :: MF_D(1:nStages,0:nMaxLevels-1)
 
     INTEGER :: iS, jS, nCompCF
-    INTEGER :: iLevel
+    INTEGER :: iLevel, iErr
 
     REAL(DP) :: dM_OffGrid_Euler(1:nCF,0:nMaxLevels-1)
 
@@ -134,6 +138,20 @@ CONTAINS
     nCompCF = nDOFX * nCF
 
     DO iS = 1, nStages
+
+      IF( DEBUG )THEN
+
+        CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+        IF( amrex_parallel_ioprocessor() )THEN
+
+          WRITE(*,*)
+          WRITE(*,'(2x,A,I2.2)') 'iS: ', iS
+          WRITE(*,*)
+
+        END IF
+
+      END IF ! DEBUG
 
       DO iLevel = 0, nLevels-1
 
@@ -160,11 +178,12 @@ CONTAINS
                               dt(iLevel) * a_SSPRK(iS,jS), MF_D(jS,iLevel), 1, &
                               1, nCompCF, 0 )
 
-            IF( iLevel .GT. 0 ) CALL AverageDownTo( iLevel-1, MF_U(iS,:) )
-
           END IF
 
         END DO ! iLevel
+
+!!$        IF( a_SSPRK(iS,jS) .NE. Zero ) &
+!!$          CALL AverageDown( MF_uGF, MF_U(iS,:) )
 
       END DO ! jS
 
@@ -191,7 +210,7 @@ CONTAINS
         IF( nLevels .GT. 1 .AND. do_reflux ) &
           CALL Reflux_Euler_MF( MF_uGF, MF_D(iS,:) )
 
-      END IF ! a(:,iS) .NE. Zero OR w(iS) .NE. Zero
+      END IF ! a(:,iS) .NE. Zero .OR. w(iS) .NE. Zero
 
     END DO ! iS
 
@@ -206,11 +225,12 @@ CONTAINS
                             dt(iLevel) * w_SSPRK(iS), MF_D(iS,iLevel), 1, 1, &
                             nCompCF, 0 )
 
-          IF( iLevel .GT. 0 ) CALL AverageDownTo( iLevel-1, MF_uCF )
-
         END IF
 
       END DO ! iLevel
+
+!!$      IF( w_SSPRK(iS) .NE. Zero ) &
+!!$        CALL AverageDown( MF_uGF, MF_uCF )
 
     END DO ! iS
 
