@@ -105,7 +105,13 @@ def f(t):
     return Data, DataUnits, X1_C, X2_C, dX1, dX2, Time
 
 
-Data, DataUnits, X1_C, X2_C, dX1, dX2, Time = f(0)
+Data, DataUnits, \
+  X1_C, X2_C, X3_C, dX1, dX2, dX3, xL, xU, nX \
+    = GetData( PlotFileDirectory, PlotFileBaseName, Field, \
+               CoordinateSystem, UsePhysicalUnits, \
+               argv = [ 'a' ], \
+               MaxLevel = MaxLevel, \
+               ReturnTime = False, ReturnMesh = True )
 
 xL = np.array( [ X1_C[0 ]-0.5*dX1[0 ], X2_C[0 ]-0.5*dX2[0 ] ], np.float64 )
 xU = np.array( [ X1_C[-1]+0.5*dX1[-1], X2_C[-1]+0.5*dX2[-1] ], np.float64 )
