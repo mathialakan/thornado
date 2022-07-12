@@ -34,7 +34,13 @@ MODULE MF_TwoMoment_SlopeLimiter
   USE MyAmrModule,                       ONLY: &
     nLevels, &
     nSpecies, &
+    UseTiling, &
     nE
+  USE MF_TwoMoment_BoundaryConditionsModule, ONLY: &
+    EdgeMap,          &
+    ConstructEdgeMap, &
+    MF_ApplyBoundaryConditions_TwoMoment
+
 
   IMPLICIT NONE
   PRIVATE
@@ -68,6 +74,7 @@ CONTAINS
     INTEGER :: iX_B0(3), iX_E0(3), iX_B1(3), iX_E1(3)
     INTEGER :: iZ_B0(4), iZ_E0(4), iZ_B1(4), iZ_E1(4), i, iLo_MF(4)
 
+    TYPE(EdgeMap) :: Edge_Map
 
     LOGICAL :: Verbose
 
@@ -82,7 +89,7 @@ CONTAINS
       CALL MF_uCR(iLevel) % Fill_Boundary( GEOM(iLevel) )
 
 
-      CALL amrex_mfiter_build( MFI, MF_uGF(iLevel), tiling = .TRUE. )
+      CALL amrex_mfiter_build( MFI, MF_uGF(iLevel), tiling = UseTiling )
 
       DO WHILE( MFI % next() )
 
@@ -146,6 +153,14 @@ CONTAINS
                ( nCR, nSpecies, nE, iE_B0, iE_E0, &
                  iZ_B1, iZ_E1, iLo_MF, iZ_B1, iZ_E1, uCR, U )
 
+        ! --- Apply boundary conditions to physical boundaries ---
+
+        CALL ConstructEdgeMap( GEOM(iLevel), BX, Edge_Map )
+
+        CALL MF_ApplyBoundaryConditions_TwoMoment &
+               ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, U, Edge_Map )
+
+
         CALL ApplySlopeLimiter_TwoMoment &
                ( iZ_B0, iZ_E0, iZ_B1, iZ_E1, uGE, G, C, U, Verbose_Option = Verbose )
 
@@ -153,6 +168,9 @@ CONTAINS
                ( nCR, nSpecies, nE, iE_B0, iE_E0, &
                  iZ_B1, iZ_E1, iLo_MF, iZ_B0, iZ_E0, uCR, U )
 
+        DEALLOCATE( G )
+        DEALLOCATE( C )
+        DEALLOCATE( U )
       END DO
 
       CALL amrex_mfiter_destroy( MFI )

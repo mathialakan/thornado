@@ -42,8 +42,7 @@ MODULE TwoMoment_NeutrinoMatterSolverModule_Relativistic
   USE EquationOfStateModule_TABLE, ONLY: &
     ComputeTemperatureFromSpecificInternalEnergy_TABLE, &
     ComputeSpecificInternalEnergy_TABLE, &
-    ComputePressure_TABLE, &
-    MinT
+    ComputePressure_TABLE
   USE NeutrinoOpacitiesComputationModule, ONLY: &
     ComputeEquilibriumDistributions_DG_Points, &
     ComputeNeutrinoOpacities_EC_Points, &
@@ -2074,7 +2073,7 @@ CONTAINS
         !$ACC PARALLEL LOOP GANG &
         !$ACC PRIVATE( AA11, AB1 )
 #elif defined( THORNADO_OMP    )
-        !$OMP PARALLEL DO SIMD &
+        !$OMP PARALLEL DO &
         !$OMP PRIVATE( AA11, AB1 )
 #endif
         DO iN_X = 1, nX_G
@@ -2170,7 +2169,7 @@ CONTAINS
       !$ACC PARALLEL LOOP GANG VECTOR &
       !$ACC PRIVATE( SUM1 )
 #elif defined( THORNADO_OMP    )
-      !$OMP PARALLEL DO SIMD &
+      !$OMP PARALLEL DO &
       !$OMP PRIVATE( SUM1 )
 #endif
       DO iN_X = 1, nX_G
