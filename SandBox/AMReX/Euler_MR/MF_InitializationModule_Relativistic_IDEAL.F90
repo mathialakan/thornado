@@ -596,7 +596,7 @@ CONTAINS
              ( iX_B0, iX_E0, iX_B1, iX_E1, U, Edge_Map )
 
       CALL thornado2amrex_X &
-             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B0, iX_E0, uCF, U )
+             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B1, iX_E1, uCF, U )
 
       DEALLOCATE( U )
       DEALLOCATE( G )
@@ -808,7 +808,7 @@ CONTAINS
              ( iX_B0, iX_E0, iX_B1, iX_E1, U, Edge_Map )
 
       CALL thornado2amrex_X &
-             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B0, iX_E0, uCF, U )
+             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B1, iX_E1, uCF, U )
 
       DEALLOCATE( U )
       DEALLOCATE( G )
@@ -983,7 +983,7 @@ CONTAINS
              ( iX_B0, iX_E0, iX_B1, iX_E1, U, Edge_Map )
 
       CALL thornado2amrex_X &
-             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B0, iX_E0, uCF, U )
+             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B1, iX_E1, uCF, U )
 
       DEALLOCATE( U )
       DEALLOCATE( G )
@@ -1203,7 +1203,7 @@ CONTAINS
              ( iX_B0, iX_E0, iX_B1, iX_E1, U, Edge_Map )
 
       CALL thornado2amrex_X &
-             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B0, iX_E0, uCF, U )
+             ( nCF, iX_B1, iX_E1, LBOUND( uCF ), iX_B1, iX_E1, uCF, U )
 
       DEALLOCATE( U )
       DEALLOCATE( G )
