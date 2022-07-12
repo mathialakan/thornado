@@ -885,6 +885,8 @@ CONTAINS
     IF( ANY( iErr .NE. 0 ) )THEN
 
       WRITE(*,*) 'ERROR: ComputeTimeStep_Euler_Relativistic'
+      WRITE(*,*) 'iX_B0: ', iX_B0
+      WRITE(*,*) 'iX_E0: ', iX_E0
 
       DO iX3 = iX_B0(3), iX_E0(3)
       DO iX2 = iX_B0(2), iX_E0(2)
