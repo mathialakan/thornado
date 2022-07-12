@@ -513,8 +513,8 @@ CONTAINS
 
     DO iLevel = 0, nLevels-1
 
-      CALL FillPatch( iLevel, t_new(0), MF_uGF )
-      CALL FillPatch( iLevel, t_new(0), MF_uCF )
+      CALL FillPatch( iLevel, t_new(0), MF_uGF, MF_uGF )
+      CALL FillPatch( iLevel, t_new(0), MF_uGF, MF_uCF )
 
     END DO
 

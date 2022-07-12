@@ -10,11 +10,12 @@ MODULE MF_Euler_SlopeLimiterModule
     amrex_geom
   USE amrex_multifab_module, ONLY: &
     amrex_multifab, &
-    amrex_multifab_build, &
-    amrex_multifab_destroy, &
     amrex_mfiter, &
     amrex_mfiter_build, &
     amrex_mfiter_destroy
+  USE amrex_parallel_module, ONLY: &
+    amrex_parallel_communicator, &
+    amrex_parallel_ioprocessor
 
   ! --- thornado Modules ---
 
@@ -26,8 +27,7 @@ MODULE MF_Euler_SlopeLimiterModule
     nCF, &
     nDF
   USE GeometryFieldsModule, ONLY: &
-    nGF, &
-    iGF_SqrtGm
+    nGF
   USE Euler_SlopeLimiterModule, ONLY: &
     ApplySlopeLimiter_Euler
 
@@ -37,13 +37,13 @@ MODULE MF_Euler_SlopeLimiterModule
     DP
   USE MF_UtilitiesModule, ONLY: &
     amrex2thornado_X, &
-    thornado2amrex_X, &
-    MultiplyWithMetric
+    thornado2amrex_X
   USE InputParsingModule, ONLY: &
     nLevels, &
     swX, &
     UseSlopeLimiter, &
-    UseTiling
+    UseTiling, &
+    DEBUG
   USE MF_MeshModule, ONLY: &
     CreateMesh_MF, &
     DestroyMesh_MF
@@ -53,6 +53,8 @@ MODULE MF_Euler_SlopeLimiterModule
     ApplyBoundaryConditions_Euler_MF
   USE FillPatchModule, ONLY: &
     FillPatch
+!!$  USE AverageDownModule, ONLY: &
+!!$    AverageDown
   USE MF_Euler_TimersModule, ONLY: &
     TimersStart_AMReX_Euler, &
     TimersStop_AMReX_Euler, &
@@ -80,14 +82,33 @@ CONTAINS
     TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:)
 
-    INTEGER :: iLevel
+    INTEGER :: iLevel, iErr
 
     DO iLevel = 0, nLevels-1
+
+      IF( DEBUG )THEN
+
+        CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+        IF( amrex_parallel_ioprocessor() )THEN
+
+          WRITE(*,'(2x,A,I3.3)') &
+            'CALL ApplySlopeLimiter_Euler_MF_SingleLevel, iLevel: ', &
+            iLevel
+
+        END IF
+
+      END IF
 
       CALL ApplySlopeLimiter_Euler_MF_SingleLevel &
              ( iLevel, Time(iLevel), MF_uGF, MF_uCF, MF_uDF )
 
     END DO
+
+    ! --- Ensure underlying coarse cells are consistent with
+    !     cells on refined level ---
+
+!!$    CALL AverageDown( MF_uGF, MF_uCF )
 
   END SUBROUTINE ApplySlopeLimiter_Euler_MF_MultipleLevels
 
@@ -116,8 +137,6 @@ CONTAINS
                      iLo_MF(4), iApplyBC(3)
     TYPE(EdgeMap) :: Edge_Map
 
-    TYPE(amrex_multifab) :: SqrtGm(iLevel-1:iLevel)
-
     IF( nDOFX .EQ. 1 ) RETURN
 
     IF( .NOT. UseSlopeLimiter ) RETURN
@@ -126,48 +145,9 @@ CONTAINS
 
     CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_InteriorBC )
 
-    IF( nLevels .GT. 1 .AND. iLevel .GT. 0 )THEN
-
-      CALL amrex_multifab_build &
-             ( SqrtGm(iLevel-1), MF_uGF(iLevel-1) % BA, &
-                                 MF_uGF(iLevel-1) % DM, nDOFX, swX )
-      CALL SqrtGm(iLevel-1) % COPY &
-             ( MF_uGF(iLevel-1), 1+nDOFX*(iGF_SqrtGm-1), 1, nDOFX, swX )
-
-      CALL amrex_multifab_build &
-             ( SqrtGm(iLevel  ), MF_uGF(iLevel  ) % BA, &
-                                 MF_uGF(iLevel  ) % DM, nDOFX, swX )
-      CALL SqrtGm(iLevel  ) % COPY &
-             ( MF_uGF(iLevel  ), 1+nDOFX*(iGF_SqrtGm-1), 1, nDOFX, swX )
-
-      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uGF(iLevel-1), nGF, +1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uCF(iLevel-1), nCF, +1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uDF(iLevel-1), nDF, +1 )
-
-      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uGF(iLevel  ), nGF, +1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uCF(iLevel  ), nCF, +1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uDF(iLevel  ), nDF, +1 )
-
-    END IF
-
-    CALL FillPatch( iLevel, Time, MF_uGF )
-    CALL FillPatch( iLevel, Time, MF_uCF )
-    CALL FillPatch( iLevel, Time, MF_uDF )
-
-    IF( nLevels .GT. 1 .AND. iLevel .GT. 0 )THEN
-
-      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uGF(iLevel-1), nGF, -1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uCF(iLevel-1), nCF, -1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel-1), MF_uDF(iLevel-1), nDF, -1 )
-
-      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uGF(iLevel  ), nGF, -1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uCF(iLevel  ), nCF, -1 )
-      CALL MultiplyWithMetric( SqrtGm(iLevel  ), MF_uDF(iLevel  ), nDF, -1 )
-
-      CALL amrex_multifab_destroy( SqrtGm(iLevel-1) )
-      CALL amrex_multifab_destroy( SqrtGm(iLevel  ) )
-
-    END IF
+    CALL FillPatch( iLevel, Time, MF_uGF, MF_uGF )
+    CALL FillPatch( iLevel, Time, MF_uGF, MF_uCF )
+    CALL FillPatch( iLevel, Time, MF_uGF, MF_uDF )
 
     CALL TimersStop_AMReX_Euler( Timer_AMReX_Euler_InteriorBC )
 

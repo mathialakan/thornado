@@ -1,4 +1,5 @@
 MODULE InitializationModule
+use mf_utilitiesmodule
 
   USE ISO_C_BINDING
 
@@ -211,6 +212,7 @@ CONTAINS
       CALL DescribeProgramHeaderX
 
     END IF
+
     CALL CreateFields_MF
 
     ALLOCATE( lo_bc(1:amrex_spacedim,1) )
@@ -232,6 +234,7 @@ CONTAINS
 
     CALL DestroyMesh_MF( MeshX )
 
+    ! --- Ordering of calls is important here ---
     CALL InitializeReferenceElementX
     CALL InitializeReferenceElementX_Lagrange
 
@@ -335,6 +338,7 @@ CONTAINS
 
     END IF
 
+    CALL AverageDown( MF_uGF, MF_uGF )
     CALL AverageDown( MF_uGF, MF_uCF )
 
     t_old = t_new
@@ -426,8 +430,8 @@ CONTAINS
 
     CALL InitializeFields_Euler_MF( iLevel, MF_uGF(iLevel), MF_uCF(iLevel) )
 
-    CALL FillPatch( iLevel, t_new(iLevel), MF_uGF )
-    CALL FillPatch( iLevel, t_new(iLevel), MF_uCF )
+    CALL FillPatch( iLevel, t_new(iLevel), MF_uGF, MF_uGF )
+    CALL FillPatch( iLevel, t_new(iLevel), MF_uGF, MF_uCF )
 
     CALL DestroyMesh_MF( MeshX )
 
@@ -462,9 +466,9 @@ CONTAINS
              ( FluxRegister(iLevel), BA, DM, amrex_ref_ratio(iLevel-1), &
                iLevel, nDOFX_X1 * nCF )
 
-    CALL FillCoarsePatch( iLevel, Time, MF_uGF )
-    CALL FillCoarsePatch( iLevel, Time, MF_uCF )
-    CALL FillCoarsePatch( iLevel, Time, MF_uDF )
+    CALL FillCoarsePatch( iLevel, Time, MF_uGF, MF_uGF )
+    CALL FillCoarsePatch( iLevel, Time, MF_uGF, MF_uCF )
+    CALL FillCoarsePatch( iLevel, Time, MF_uGF, MF_uDF )
 
   END SUBROUTINE MakeNewLevelFromCoarse
 
@@ -505,9 +509,9 @@ CONTAINS
     CALL amrex_multifab_build( MF_uAF_tmp, BA, DM, nDOFX * nAF, swX )
     CALL amrex_multifab_build( MF_uDF_tmp, BA, DM, nDOFX * nDF, swX )
 
-    CALL FillPatch( iLevel, Time, MF_uGF, MF_uGF_tmp )
-    CALL FillPatch( iLevel, Time, MF_uCF, MF_uCF_tmp )
-    CALL FillPatch( iLevel, Time, MF_uDF, MF_uDF_tmp )
+    CALL FillPatch( iLevel, Time, MF_uGF, MF_uGF, MF_uGF_tmp )
+    CALL FillPatch( iLevel, Time, MF_uGF, MF_uCF, MF_uCF_tmp )
+    CALL FillPatch( iLevel, Time, MF_uGF, MF_uDF, MF_uDF_tmp )
 
     CALL ClearLevel( iLevel )
 
