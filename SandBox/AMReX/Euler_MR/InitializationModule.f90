@@ -144,7 +144,7 @@ use mf_utilitiesmodule
     dt_chk, &
     xL, &
     UseTiling, &
-    do_reflux, &
+    ApplyFluxCorrection, &
     MaxGridSizeX, &
     BlockingFactor, &
     xL, &
@@ -419,7 +419,7 @@ CONTAINS
     CALL MF_uDF(iLevel) % SetVal( Zero )
 
     ! Assume nDOFX_X2 = nDOFX_X3 = nDOFX_X1
-    IF( iLevel .GT. 0 .AND. do_reflux ) &
+    IF( iLevel .GT. 0 .AND. ApplyFluxCorrection ) &
       CALL amrex_fluxregister_build &
              ( FluxRegister(iLevel), BA, DM, &
                amrex_ref_ratio(iLevel-1), iLevel, nDOFX_X1*nCF )
@@ -461,7 +461,7 @@ CONTAINS
     CALL amrex_multifab_build( MF_uAF(iLevel), BA, DM, nDOFX * nAF, swX )
     CALL amrex_multifab_build( MF_uDF(iLevel), BA, DM, nDOFX * nDF, swX )
 
-    IF( iLevel .GT. 0 .AND. do_reflux ) &
+    IF( iLevel .GT. 0 .AND. ApplyFluxCorrection ) &
       CALL amrex_fluxregister_build &
              ( FluxRegister(iLevel), BA, DM, amrex_ref_ratio(iLevel-1), &
                iLevel, nDOFX_X1 * nCF )
@@ -483,7 +483,7 @@ CONTAINS
     CALL amrex_multifab_destroy( MF_uCF(iLevel) )
     CALL amrex_multifab_destroy( MF_uGF(iLevel) )
 
-    IF( iLevel .GT. 0 .AND. do_reflux ) &
+    IF( iLevel .GT. 0 .AND. ApplyFluxCorrection ) &
       CALL amrex_fluxregister_destroy( FluxRegister(iLevel) )
 
   END SUBROUTINE ClearLevel
@@ -521,7 +521,7 @@ CONTAINS
     CALL amrex_multifab_build( MF_uAF(iLevel), BA, DM, nDOFX * nAF, swX )
     CALL amrex_multifab_build( MF_uDF(iLevel), BA, DM, nDOFX * nDF, swX )
 
-    IF( iLevel .GT. 0 .AND. do_reflux ) &
+    IF( iLevel .GT. 0 .AND. ApplyFluxCorrection ) &
       CALL amrex_fluxregister_build &
              ( FluxRegister(iLevel), BA, DM, amrex_ref_ratio(iLevel-1), &
                iLevel, nDOFX_X1 * nCF )
@@ -665,14 +665,14 @@ CONTAINS
 
       WRITE(*,'(4x,A)')       'INFO: AMReX'
       WRITE(*,'(4x,A)')       '-----------'
-      WRITE(*,'(4x,A,3I4.3)') '        MaxGridSize: ', MaxGridSizeX
-      WRITE(*,'(4x,A,3I4.3)') '     BlockingFactor: ', BlockingFactor
-      WRITE(*,'(4x,A,I2.2)')  '         nMaxLevels: ', nMaxLevels
-      WRITE(*,'(4x,A,L)')     '          do_reflux: ', do_reflux
-      WRITE(*,'(4x,A,L)')     '          UseTiling: ', UseTiling
-      WRITE(*,'(4x,A,L)')     '             UseAMR: ', UseAMR
-      WRITE(*,TRIM(RFMT))     '        TagCriteria: ', TagCriteria
-      WRITE(*,TRIM(IFMT))     '  nRefinementBuffer: ', nRefinementBuffer
+      WRITE(*,'(4x,A,3I4.3)') '          MaxGridSize: ', MaxGridSizeX
+      WRITE(*,'(4x,A,3I4.3)') '       BlockingFactor: ', BlockingFactor
+      WRITE(*,'(4x,A,I2.2)')  '           nMaxLevels: ', nMaxLevels
+      WRITE(*,'(4x,A,L)')     '  ApplyFluxCorrection: ', ApplyFluxCorrection
+      WRITE(*,'(4x,A,L)')     '            UseTiling: ', UseTiling
+      WRITE(*,'(4x,A,L)')     '               UseAMR: ', UseAMR
+      WRITE(*,TRIM(RFMT))     '          TagCriteria: ', TagCriteria
+      WRITE(*,TRIM(IFMT))     '    nRefinementBuffer: ', nRefinementBuffer
       WRITE(*,*)
 
     END IF

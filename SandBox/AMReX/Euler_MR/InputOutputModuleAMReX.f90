@@ -95,7 +95,7 @@ MODULE InputOutputModuleAMReX
     nX, &
     iRestart, &
     UseTiling, &
-    do_reflux
+    ApplyFluxCorrection
 
   IMPLICIT NONE
   PRIVATE
@@ -498,7 +498,7 @@ CONTAINS
       CALL MF_uDF(iLevel) % SetVal( Zero )
 
       ! Assume nDOFX_X2 = nDOFX_X3 = nDOFX_X1
-      IF( iLevel .GT. 0 .AND. do_reflux ) &
+      IF( iLevel .GT. 0 .AND. ApplyFluxCorrection ) &
         CALL amrex_fluxregister_build &
                ( FluxRegister(iLevel), BA(iLevel), DM(iLevel), &
                  amrex_ref_ratio(iLevel-1), iLevel, nDOFX_X1*nCF )
