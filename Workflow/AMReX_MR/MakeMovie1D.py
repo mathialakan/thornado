@@ -88,8 +88,16 @@ if nSS < 0: nSS = PlotFileArray.shape[0]
 fig = plt.figure()
 ax  = fig.add_subplot( 111 )
 
+if UseCustomLimits: ax.set_ylim( ymin, ymax )
 ymin = +np.inf
 ymax = -np.inf
+for j in range( nSS ):
+    iSS = SSi + np.int64( ( SSf - SSi ) / ( nSS - 1 ) * j )
+    DataFile = DataFileDirectory + PlotFileArray[iSS] + '.dat'
+    Data = np.loadtxt( DataFile )
+    ymin = min( ymin, Data.min() )
+    ymax = max( ymax, Data.max() )
+if not UseCustomLimits: ax.set_ylim( ymin, ymax )
 
 def f(t):
 
@@ -155,7 +163,7 @@ def UpdateFrame( t ):
     line.set_data( X1_C, Data.flatten() )
     time_text.set_text( 'Time = {:.3e} {:}'.format( Time, TimeUnits ) )
     if ShowIC: IC.set_data( X1_C0, Data0.flatten() )
-    if PlotMesh: mesh.set_data( X1_C - 0.5 * dX1, np.ones( X1_C.shape[0] ) )
+    if PlotMesh: mesh.set_data( X1_C - 0.5 * dX1, 0.5 * ( ymin + ymax ) )
 
     if ShowIC and PlotMesh: ret = ( line, time_text, IC, mesh )
     elif ShowIC:            ret = ( line, time_text, IC )
