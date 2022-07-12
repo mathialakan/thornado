@@ -171,6 +171,23 @@ PROGRAM ApplicationDriver
         ! --- Regridding may cause some cells to be un-physical ---
         CALL ApplyPositivityLimiter_Euler_MF( MF_uGF, MF_uCF, MF_uDF )
 
+        IF( DEBUG )THEN
+
+          CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+          IF( amrex_parallel_ioprocessor() )THEN
+
+            WRITE(*,*)
+            WRITE(*,'(A)') 'CALL ComputeFromConserved_Euler_MF'
+            WRITE(*,*)
+
+          END IF
+
+          CALL ComputeFromConserved_Euler_MF &
+                 ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
+
+        END IF
+
       END IF ! MOD( StepNo(0), 10 ) .EQ. 0
 
     END IF ! UseAMR
@@ -210,6 +227,23 @@ PROGRAM ApplicationDriver
     END IF
 
     CALL UpdateFluid_SSPRK_MF
+
+    IF( DEBUG )THEN
+
+      CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
+
+      IF( amrex_parallel_ioprocessor() )THEN
+
+        WRITE(*,*)
+        WRITE(*,'(A)') 'CALL ComputeFromConserved_Euler_MF'
+        WRITE(*,*)
+
+      END IF
+
+      CALL ComputeFromConserved_Euler_MF &
+             ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
+
+    END IF
 
     IF( amrex_parallel_ioprocessor() )THEN
 
