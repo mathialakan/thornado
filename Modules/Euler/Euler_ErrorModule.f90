@@ -57,7 +57,6 @@ CONTAINS
           WRITE(*,'(2x,A,ES24.16E3)') 'h3  (iNX): ', Real_Option(8)
           WRITE(*,'(2x,A)') TRIM( Message )
 
-
           CALL thornado_abort
 
       CASE( 02 )
