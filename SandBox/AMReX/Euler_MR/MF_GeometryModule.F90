@@ -31,7 +31,8 @@ MODULE MF_GeometryModule
     LX_X1_Dn, &
     LX_X1_Up
   USE GeometryFieldsModule, ONLY: &
-    nGF
+    nGF, &
+    iGF_Beta_1
   USE GeometryComputationModule, ONLY: &
     ComputeGeometryX
   USE LinearAlgebraModule, ONLY: &
@@ -199,7 +200,11 @@ CONTAINS
             jNX = NodeNumberX( jNX1, iNX2, iNX3 )
 
             uGF(iX_B0(1)-1,iX2,iX3,nDOFX*(iGF-1)+iNX) &
-            = uGF(iX_B0(1),iX2,iX3,nDOFX*(iGF-1)+jNX)
+              = uGF(iX_B0(1),iX2,iX3,nDOFX*(iGF-1)+jNX)
+
+            IF( iGF .EQ. iGF_Beta_1 ) &
+              uGF(iX_B0(1)-1,iX2,iX3,nDOFX*(iGF-1)+iNX) &
+                = -uGF(iX_B0(1),iX2,iX3,nDOFX*(iGF-1)+jNX)
 
           END DO
           END DO
