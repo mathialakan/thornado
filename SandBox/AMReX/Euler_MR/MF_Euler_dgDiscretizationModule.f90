@@ -84,6 +84,7 @@ MODULE  MF_Euler_dgDiscretizationModule
     swX, &
     ApplyFluxCorrection, &
     UsePositivityLimiter, &
+    UseXCFC, &
     DEBUG
   USE MF_MeshModule, ONLY: &
     CreateMesh_MF, &
@@ -116,21 +117,15 @@ CONTAINS
 
 
   SUBROUTINE ComputeIncrement_Euler_MF_MultipleLevels &
-    ( Time, MF_uGF, MF_uCF, MF_uDF, MF_duCF, UseXCFC_Option )
+    ( Time, MF_uGF, MF_uCF, MF_uDF, MF_duCF )
 
     REAL(DP),             INTENT(in)    :: Time   (0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_uGF (0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_uCF (0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_uDF (0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_duCF(0:)
-    LOGICAL,              INTENT(in), OPTIONAL :: UseXCFC_Option
 
     INTEGER :: iLevel, iErr
-    LOGICAL :: UseXCFC
-
-    UseXCFC = .FALSE.
-    IF( PRESENT( UseXCFC_Option ) ) &
-      UseXCFC = UseXCFC_Option
 
     MF_OffGridFlux_Euler = Zero
 
@@ -147,8 +142,7 @@ CONTAINS
       END IF
 
       CALL ComputeIncrement_Euler_MF_SingleLevel &
-             ( iLevel, Time(iLevel), MF_uGF, MF_uCF, MF_uDF, MF_duCF(iLevel), &
-               UseXCFC_Option = UseXCFC )
+             ( iLevel, Time(iLevel), MF_uGF, MF_uCF, MF_uDF, MF_duCF(iLevel) )
 
     END DO
 
@@ -158,7 +152,7 @@ CONTAINS
 
 
   SUBROUTINE ComputeIncrement_Euler_MF_SingleLevel &
-    ( iLevel, Time, MF_uGF, MF_uCF, MF_uDF, MF_duCF, UseXCFC_Option )
+    ( iLevel, Time, MF_uGF, MF_uCF, MF_uDF, MF_duCF )
 
 !    DO iLevel = 0, nLevels-1
 !
@@ -244,7 +238,6 @@ CONTAINS
     TYPE(amrex_multifab), INTENT(inout) :: MF_uCF(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_uDF(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF_duCF
-    LOGICAL,              INTENT(in), OPTIONAL :: UseXCFC_Option
 
     TYPE(amrex_mfiter) :: MFI
     TYPE(amrex_box)    :: BX
@@ -266,17 +259,12 @@ CONTAINS
     REAL(DP), ALLOCATABLE :: SurfaceFlux_X3(:,:,:,:,:)
 
     INTEGER :: iX_B0(3), iX_E0(3), iX_B1(3), iX_E1(3), iLo_MF(4)
-    LOGICAL :: UseXCFC
 
     TYPE(amrex_multifab) :: SurfaceFluxes(1:nDimsX)
     INTEGER              :: iDimX, nGhost(nDimsX), nDOFX_X(3)
     LOGICAL              :: Nodal(nDimsX)
 
     TYPE(EdgeMap) :: Edge_Map
-
-    UseXCFC = .FALSE.
-    IF( PRESENT( UseXCFC_Option ) ) &
-      UseXCFC = UseXCFC_Option
 
     ! --- Maybe don't need to apply boundary conditions since
     !     they're applied in the shock detector ---
@@ -285,6 +273,8 @@ CONTAINS
 
     CALL TimersStart_AMReX_Euler( Timer_AMReX_Euler_InteriorBC )
 
+    ! --- This conditions spoils conservation, but is needed for
+    !     mesh refinement ---
     IF( ( .NOT. UsePositivityLimiter ) .OR. ( nDOFX .EQ. 1 ) )THEN
 
       CALL FillPatch( iLevel, Time, MF_uGF, MF_uGF )
@@ -389,7 +379,8 @@ CONTAINS
                SuppressBC_Option = .TRUE., &
                SurfaceFlux_X1_Option = SurfaceFlux_X1, &
                SurfaceFlux_X2_Option = SurfaceFlux_X2, &
-               SurfaceFlux_X3_Option = SurfaceFlux_X3 )
+               SurfaceFlux_X3_Option = SurfaceFlux_X3, &
+               UseXCFC_Option = UseXCFC )
 
       CALL thornado2amrex_X &
              ( nCF, iX_B1, iX_E1, iLo_MF, iX_B0, iX_E0, duCF, dU )

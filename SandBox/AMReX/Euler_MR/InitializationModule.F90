@@ -1,5 +1,4 @@
 MODULE InitializationModule
-use mf_utilitiesmodule
 
   USE ISO_C_BINDING
 
@@ -183,6 +182,9 @@ use mf_utilitiesmodule
     TimersStop_AMReX_Euler, &
     Timer_AMReX_Euler_Initialize, &
     Timer_AMReX_Euler_InputOutput
+  USE MF_GravitySolutionModule_XCFC_Poseidon, ONLY: &
+    InitializeGravitySolver_XCFC_Poseidon_MF, &
+    InitializeMetric_MF
 
   IMPLICIT NONE
   PRIVATE
@@ -328,7 +330,39 @@ CONTAINS
       CALL amrex_init_from_scratch( 0.0_DP )
       nLevels = amrex_get_numlevels()
 
+#ifdef GRAVITY_SOLVER_POSEIDON_CFA
+
+      CALL CreateMesh_MF( 0, MeshX )
+
+      CALL InitializeGravitySolver_XCFC_Poseidon_MF
+
+      CALL DestroyMesh_MF( MeshX )
+
+      CALL ComputeFromConserved_Euler_MF &
+             ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
+
+      CALL InitializeMetric_MF( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
+
+#endif
+
     ELSE
+
+      CALL amrex_init_from_scratch( 0.0_DP )
+
+#ifdef GRAVITY_SOLVER_POSEIDON_CFA
+
+      CALL CreateMesh_MF( 0, MeshX )
+
+      CALL InitializeGravitySolver_XCFC_Poseidon_MF
+
+      CALL DestroyMesh_MF( MeshX )
+
+      CALL ComputeFromConserved_Euler_MF &
+             ( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
+
+      CALL InitializeMetric_MF( MF_uGF, MF_uCF, MF_uPF, MF_uAF )
+
+#endif
 
       CALL ReadCheckpointFile
 
@@ -543,6 +577,7 @@ CONTAINS
       TagElements_Advection2D, &
       TagElements_KelvinHelmholtz2D, &
       TagElements_Advection3D, &
+      TagElements_AdiabaticCollapse_XCFC, &
       TagElements_uCF
 
     INTEGER,                INTENT(in), VALUE :: iLevel
@@ -617,6 +652,13 @@ CONTAINS
         CASE( 'Advection3D' )
 
           CALL TagElements_Advection3D &
+                 ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
+                   uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
+                   LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
+
+        CASE( 'AdiabaticCollapse_XCFC' )
+
+          CALL TagElements_AdiabaticCollapse_XCFC &
                  ( iLevel, BX % lo, BX % hi, LBOUND( uCF ), UBOUND( uCF ), &
                    uCF, TagCriteria(iLevel+1), SetTag, ClearTag, &
                    LBOUND( TagArr ), UBOUND( TagArr ), TagArr )
