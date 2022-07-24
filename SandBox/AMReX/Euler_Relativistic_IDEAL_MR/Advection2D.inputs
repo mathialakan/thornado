@@ -14,7 +14,8 @@ thornado.CFL       = 0.5
 thornado.iCycleW   = 100
 thornado.iCycleChk = 100000
 
-thornado.PlotFileBaseName = "Advection2D.plt"
+thornado.PlotFileBaseName       = "Advection2D.plt"
+thornado.CheckpointFileBaseName = "Advection2D.chk"
 
 EoS.Gamma_IDEAL = 1.3333333333333333
 
@@ -39,6 +40,8 @@ amr.n_error_buf         = 0
 amr.ref_ratio           = 2
 amr.UseTiling           = 0
 
-SL.UseSlopeLimiter = 0
-SL.UseTroubledCellIndicator = 0
-PL.UsePositivityLimiter = 0
+SL.UseSlopeLimiter           = 1
+SL.UseCharacteristicLimiting = 0
+SL.UseTroubledCellIndicator  = 0
+
+PL.UsePositivityLimiter = 1
