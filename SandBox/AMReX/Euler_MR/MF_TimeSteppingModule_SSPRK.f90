@@ -52,8 +52,8 @@ MODULE MF_TimeSteppingModule_SSPRK
     t_new, &
     dt, &
     DEBUG
-  USE RefluxModule_Euler, ONLY: &
-    Reflux_Euler_MF
+  USE FluxCorrectionModule_Euler, ONLY: &
+    ApplyFluxCorrection_Euler_MF
   USE MF_GravitySolutionModule_XCFC_Poseidon, ONLY: &
     nGS, &
     MultiplyWithPsi6_MF, &
@@ -251,7 +251,7 @@ CONTAINS
         END DO
 
         IF( nLevels .GT. 1 .AND. UseFluxCorrection ) &
-          CALL Reflux_Euler_MF( MF_uGF, MF_D(iS,:) )
+          CALL ApplyFluxCorrection_Euler_MF( MF_uGF, MF_D(iS,:) )
 
       END IF ! a(:,iS) .NE. Zero .OR. w(iS) .NE. Zero
 

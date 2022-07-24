@@ -1,4 +1,4 @@
-MODULE RefluxModule_Euler
+MODULE FluxCorrectionModule_Euler
 
   ! --- AMReX Modules ---
 
@@ -38,17 +38,17 @@ MODULE RefluxModule_Euler
   IMPLICIT NONE
   PRIVATE
 
-  PUBLIC :: Reflux_Euler_MF
+  PUBLIC :: ApplyFluxCorrection_Euler_MF
 
-  INTERFACE Reflux_Euler_MF
-    MODULE PROCEDURE Reflux_Euler_MF_SingleLevel
-    MODULE PROCEDURE Reflux_Euler_MF_MultipleLevels
-  END INTERFACE Reflux_Euler_MF
+  INTERFACE ApplyFluxCorrection_Euler_MF
+    MODULE PROCEDURE ApplyFluxCorrection_Euler_MF_SingleLevel
+    MODULE PROCEDURE ApplyFluxCorrection_Euler_MF_MultipleLevels
+  END INTERFACE ApplyFluxCorrection_Euler_MF
 
 CONTAINS
 
 
-  SUBROUTINE Reflux_Euler_MF_MultipleLevels( MF_uGF, MF )
+  SUBROUTINE ApplyFluxCorrection_Euler_MF_MultipleLevels( MF_uGF, MF )
 
     TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:)
     TYPE(amrex_multifab), INTENT(inout) :: MF    (0:)
@@ -58,16 +58,16 @@ CONTAINS
     DO iLevel = 0, nLevels-1
 
       IF( iLevel .GT. 0 ) &
-        CALL Reflux_Euler_MF_SingleLevel( iLevel, MF_uGF, MF )
+        CALL ApplyFluxCorrection_Euler_MF_SingleLevel( iLevel, MF_uGF, MF )
 
     END DO
 
     CALL AverageDown( MF_uGF, MF )
 
-  END SUBROUTINE Reflux_Euler_MF_MultipleLevels
+  END SUBROUTINE ApplyFluxCorrection_Euler_MF_MultipleLevels
 
 
-  SUBROUTINE Reflux_Euler_MF_SingleLevel( FineLevel, MF_uGF, MF )
+  SUBROUTINE ApplyFluxCorrection_Euler_MF_SingleLevel( FineLevel, MF_uGF, MF )
 
     INTEGER             , INTENT(in)    :: FineLevel
     TYPE(amrex_multifab), INTENT(inout) :: MF_uGF(0:)
@@ -80,7 +80,7 @@ CONTAINS
       CALL MPI_BARRIER( amrex_parallel_communicator(), iErr )
 
       WRITE(*,'(4x,A,I3.3)') &
-        'CALL Reflux_Euler_MF_SingleLevel, FineLevel: ', FineLevel
+        'CALL ApplyFluxCorrection_Euler_MF_SingleLevel, FineLevel: ', FineLevel
 
     END IF
 
@@ -98,7 +98,7 @@ CONTAINS
 
     CALL DestroyMesh_MF( MeshX )
 
-  END SUBROUTINE Reflux_Euler_MF_SingleLevel
+  END SUBROUTINE ApplyFluxCorrection_Euler_MF_SingleLevel
 
 
-END MODULE RefluxModule_Euler
+END MODULE FluxCorrectionModule_Euler
