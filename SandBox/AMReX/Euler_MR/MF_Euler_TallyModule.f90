@@ -42,7 +42,7 @@ MODULE MF_Euler_TallyModule
     nMaxLevels, &
     ProgramName, &
     UseTiling, &
-    ApplyFluxCorrection
+    UseFluxCorrection
   USE MF_MeshModule, ONLY: &
     CreateMesh_MF, &
     DestroyMesh_MF
@@ -106,11 +106,11 @@ CONTAINS
 
       IF( nMaxLevels .GT. 1 )THEN
 
-        IF( .NOT. ApplyFluxCorrection )THEN
+        IF( .NOT. UseFluxCorrection )THEN
 
           WRITE(*,*)
           WRITE(*,'(4x,A)') &
-            'WARNING: Euler tally not accurate when ApplyFluxCorrection is false'
+            'WARNING: Euler tally not accurate when UseFluxCorrection is false'
           WRITE(*,'(4x,A)') &
             '-------'
 

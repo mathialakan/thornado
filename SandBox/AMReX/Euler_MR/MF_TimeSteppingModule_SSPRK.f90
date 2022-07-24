@@ -48,7 +48,7 @@ MODULE MF_TimeSteppingModule_SSPRK
     CFL, &
     nNodes, &
     nStages, &
-    ApplyFluxCorrection, &
+    UseFluxCorrection, &
     t_new, &
     dt, &
     DEBUG
@@ -250,7 +250,7 @@ CONTAINS
 
         END DO
 
-        IF( nLevels .GT. 1 .AND. ApplyFluxCorrection ) &
+        IF( nLevels .GT. 1 .AND. UseFluxCorrection ) &
           CALL Reflux_Euler_MF( MF_uGF, MF_D(iS,:) )
 
       END IF ! a(:,iS) .NE. Zero .OR. w(iS) .NE. Zero

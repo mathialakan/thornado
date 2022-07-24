@@ -95,7 +95,7 @@ MODULE InputParsingModule
   INTEGER :: nLevels
   INTEGER :: nMaxLevels
   LOGICAL :: UseTiling
-  LOGICAL :: ApplyFluxCorrection
+  LOGICAL :: UseFluxCorrection
   INTEGER , ALLOCATABLE :: RefinementRatio(:)
   INTEGER , ALLOCATABLE :: StepNo(:)
   INTEGER , ALLOCATABLE :: nRefinementBuffer(:)
@@ -288,9 +288,9 @@ CONTAINS
       BlockingFactorX3 = 8
 
     END IF
-    UseAMR              = .FALSE.
-    ApplyFluxCorrection = .FALSE.
-    UseTiling           = .FALSE.
+    UseAMR            = .FALSE.
+    UseFluxCorrection = .FALSE.
+    UseTiling         = .FALSE.
     CALL amrex_parmparse_build( PP, 'amr' )
       CALL PP % getarr  ( 'n_cell'           , nX                )
       CALL PP % query   ( 'max_grid_size_x'  , MaxGridSizeX1     )
@@ -301,10 +301,10 @@ CONTAINS
       CALL PP % query   ( 'blocking_factor_z', BlockingFactorX3  )
       CALL PP % get     ( 'max_level'        , MaxLevel          )
       IF( MaxLevel .GT. 0 )THEN
-        CALL PP % query ( 'UseAMR'             , UseAMR              )
-        CALL PP % query ( 'ApplyFluxCorrection', ApplyFluxCorrection )
-        CALL PP % getarr( 'TagCriteria'        , TagCriteria         )
-        CALL PP % getarr( 'n_error_buf'        , nRefinementBuffer   )
+        CALL PP % query ( 'UseAMR'           , UseAMR            )
+        CALL PP % query ( 'UseFluxCorrection', UseFluxCorrection )
+        CALL PP % getarr( 'TagCriteria'      , TagCriteria       )
+        CALL PP % getarr( 'n_error_buf'      , nRefinementBuffer )
       END IF
       CALL PP % getarr  ( 'ref_ratio'        , RefinementRatio   )
       CALL PP % query   ( 'UseTiling'        , UseTiling         )
