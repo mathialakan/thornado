@@ -25,6 +25,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt-get -qq update
+      - run: sudo apt-get -qq install lmod
 
       - run: sudo apt-get -qq install libhdf5-dev
                                       liblapack-dev
@@ -51,6 +52,9 @@ jobs:
 
       # Compile thornado
 
+      - run: module avail nvhpc
+      - run: module avail hdf5
+      - run: module load nvhpc/${CUDA_MAJOR}.${CUDA_MINOR}
       - run: cd ${THORNADO_DIR}/SandBox/dgExperiments_Euler_Relativistic_IDEAL/Executables/
       - run: make HYDRO=RELATIVISTIC \
                   HYDRO_RIEMANN_SOLVER=HLL \
