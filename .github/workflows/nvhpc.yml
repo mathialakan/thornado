@@ -53,6 +53,8 @@ jobs:
         #      # Compile thornado
         #
         #      - run: module avail nvhpc
+      - run: source /etc/profile.d/modules.sh
+      - run: module avail
       - run: module avail hdf5
       - run: module avail lapack
         #      - run: module load nvhpc/${CUDA_MAJOR}.${CUDA_MINOR}
