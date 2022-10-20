@@ -25,43 +25,37 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - run: sudo apt-get -qq update
-      - run: sudo apt-get -qq install environment-modules
 
-      - run: sudo apt-get -qq install libhdf5-dev
-                                      liblapack-dev
-                                      libopenmpi-dev
+      - run: sudo apt-get -y install libhdf5-dev \
+                                     liblapack-dev \
+                                     libopenmpi-dev
 
-        #      # Install nvhpc
-        #      # https://docs.nvidia.com/hpc-sdk/hpc-sdk-install-guide/index.html
-        #
-        #      - run: wget https://developer.download.nvidia.com/hpc-sdk/${NVHPC_MAJOR}.${NVHPC_MINOR}/nvhpc_2022_${NVHPC_MAJOR}${NVHPC_MINOR}_${NVARCH}_cuda_${CUDA_MAJOR}.${CUDA_MINOR}.tar.gz
-        #      - run: tar xpzf nvhpc_2022_${NVHPC_MAJOR}${NVHPC_MINOR}_${NVARCH}_cuda_${CUDA_MAJOR}.${CUDA_MINOR}.tar.gz
-        #      - run: sudo nvhpc_2022_${NVHPC_MAJOR}${NVHPC_MINOR}_${NVARCH}_cuda_${CUDA_MAJOR}.${CUDA_MINOR}/install
-        #      - run: echo ${NVCOMPILERS}/${NVARCH}/${NVHPC_MAJOR}.${NVHPC_MINOR}/compilers/bin >> ${GITHUB_PATH}
-        #      - run: echo ${NVCOMPILERS}/${NVARCH}/${NVHPC_MAJOR}.${NVHPC_MINOR}/comm_libs/mpi/bin >> ${GITHUB_PATH}
-        #
-        #      - run: |
-        #          which nvcc || echo "nvcc not in PATH!"
-        #          which nvc++ || echo "nvc++ not in PATH!"
-        #          which nvc || echo "nvc not in PATH!"
-        #          which nvfortran || echo "nvfortran not in PATH!"
-        #          nvcc --version
-        #          nvc++ --version
-        #          nvc --version
-        #          nvfortran --version
-        #
-        #      # Compile thornado
-        #
-        #      - run: module avail nvhpc
-      - run: source /etc/profile.d/modules.sh
-      - run: module avail
-      - run: module avail hdf5
-      - run: module avail lapack
-        #      - run: module load nvhpc/${CUDA_MAJOR}.${CUDA_MINOR}
-        #      - run: cd ${THORNADO_DIR}/SandBox/dgExperiments_Euler_Relativistic_IDEAL/Executables/
-        #      - run: make HYDRO=RELATIVISTIC \
-        #                  HYDRO_RIEMANN_SOLVER=HLL \
-        #                  OPT_LEVEL=DEBUG \
-        #                  USE_GPU=TRUE \
-        #                  USE_OACC=TRUE \
-        #                  USE_CUBLAS=TRUE
+      # Install nvhpc
+      # https://docs.nvidia.com/hpc-sdk/hpc-sdk-install-guide/index.html
+
+      - run: wget https://developer.download.nvidia.com/hpc-sdk/${NVHPC_MAJOR}.${NVHPC_MINOR}/nvhpc_2022_${NVHPC_MAJOR}${NVHPC_MINOR}_${NVARCH}_cuda_${CUDA_MAJOR}.${CUDA_MINOR}.tar.gz
+      - run: tar xpzf nvhpc_2022_${NVHPC_MAJOR}${NVHPC_MINOR}_${NVARCH}_cuda_${CUDA_MAJOR}.${CUDA_MINOR}.tar.gz
+      - run: sudo nvhpc_2022_${NVHPC_MAJOR}${NVHPC_MINOR}_${NVARCH}_cuda_${CUDA_MAJOR}.${CUDA_MINOR}/install
+      - run: echo ${NVCOMPILERS}/${NVARCH}/${NVHPC_MAJOR}.${NVHPC_MINOR}/compilers/bin >> ${GITHUB_PATH}
+      - run: echo ${NVCOMPILERS}/${NVARCH}/${NVHPC_MAJOR}.${NVHPC_MINOR}/comm_libs/mpi/bin >> ${GITHUB_PATH}
+
+      - run: |
+          which nvcc || echo "nvcc not in PATH!"
+          which nvc++ || echo "nvc++ not in PATH!"
+          which nvc || echo "nvc not in PATH!"
+          which nvfortran || echo "nvfortran not in PATH!"
+          nvcc --version
+          nvc++ --version
+          nvc --version
+          nvfortran --version
+
+      # Compile thornado
+
+      - run: cd ${THORNADO_DIR}/SandBox/dgExperiments_Euler_Relativistic_IDEAL/Executables/
+      - run: make OPT_LEVEL=DEBUG \
+                  HYDRO=RELATIVISTIC \
+                  HYDRO_RIEMANN_SOLVER=HLL \
+                  USE_GPU=TRUE \
+                  USE_CUDA=TRUE \
+                  USE_OACC=TRUE \
+                  USE_CUBLAS=TRUE
