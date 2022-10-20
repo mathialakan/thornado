@@ -26,9 +26,9 @@ jobs:
       - uses: actions/checkout@v3
       - run: sudo apt-get -qq update
 
-      - run: sudo apt-get -y install libhdf5-dev \
-                                     liblapack-dev \
-                                     libopenmpi-dev
+      - run: sudo apt-get -y install libhdf5-dev
+      - run: sudo apt-get -y install liblapack-dev
+      - run: sudo apt-get -y install libopenmpi-dev
 
       # Install nvhpc
       # https://docs.nvidia.com/hpc-sdk/hpc-sdk-install-guide/index.html
