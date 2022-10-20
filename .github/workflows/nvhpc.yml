@@ -55,7 +55,7 @@ jobs:
       - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CudaModule.f90
       - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CublasModule.f90
       - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CusolverModule.f90
-      - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CusparseModule.f90
+      - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CusparseModule.F90
       - run: make OPT_LEVEL=DEBUG \
                   HYDRO=RELATIVISTIC \
                   HYDRO_RIEMANN_SOLVER=HLL \
