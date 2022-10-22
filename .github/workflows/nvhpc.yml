@@ -53,7 +53,7 @@ jobs:
 
       - run: cd ${THORNADO_DIR}/SandBox/dgExperiments_Euler_Relativistic_IDEAL/Executables/
       - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CudaModule.f90
-      - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/OpenACCModule.F90
+      - run: nvfortran -c -acc ${THORNADO_DIR}/Modules/Library/OpenACCModule.F90
       - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CublasModule.f90
       - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CusolverModule.f90
       - run: nvfortran -c ${THORNADO_DIR}/Modules/Library/CusparseModule.F90
