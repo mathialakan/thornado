@@ -55,7 +55,7 @@ jobs:
       - run: mpifort -c ${THORNADO_DIR}/Modules/Library/CudaModule.f90
       - run: mpifort -Mpreprocess -c -DTHORNADO_OACC \
              -Mnoopenmp -Ktrap=fp -acc -gpu=cuda11.7,cc70,ptxinfo \
-             -Minfo=accel -I/usr/local/cuda-11.7/include \
+             -I/usr/local/cuda-11.7/include \
              ${THORNADO_DIR}/Modules/Library/OpenACCModule.F90
       - run: mpifort -c ${THORNADO_DIR}/Modules/Library/CublasModule.f90
       - run: mpifort -c ${THORNADO_DIR}/Modules/Library/CusolverModule.f90
