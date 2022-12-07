@@ -1215,9 +1215,9 @@ CONTAINS
 
 #if   defined( THORNADO_OMP_OL )
     !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO  COLLAPSE(3) &
-    !$OMP PRIVATE( SUM1, SUM2, DetBal, Phi_In, Phi_Out ) &
-    !$OMP MAP( to: H_I, H_II, W2, J, J0 ) &
-    !$OMP MAP( from: Eta, Chi )
+    !$OMP PRIVATE( SUM1, SUM2, DetBal, Phi_In, Phi_Out ) 
+!    !$OMP MAP( to: H_I, H_II, W2, J, J0 ) &
+!    !$OMP MAP( from: Eta, Chi )
 #elif defined( THORNADO_OACC   )
     !$ACC PARALLEL LOOP GANG VECTOR COLLAPSE(3) &
     !$ACC PRIVATE( SUM1, SUM2, DetBal, Phi_In, Phi_Out ) &
@@ -1481,9 +1481,9 @@ CONTAINS
 
 #if   defined( THORNADO_OMP_OL )
     !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO COLLAPSE(3) &
-    !$OMP PRIVATE( iS_A, SUM1, SUM2, DetBal, Phi_0_Pro, Phi_0_Ann ) &
-    !$OMP MAP( to: J_I, J_II, W2, J, J0 ) &
-    !$OMP MAP( from: Eta, Chi )
+    !$OMP PRIVATE( iS_A, SUM1, SUM2, DetBal, Phi_0_Pro, Phi_0_Ann ) 
+   ! !$OMP MAP( to: J_I, J_II, W2, J, J0 ) &
+   ! !$OMP MAP( from: Eta, Chi )
 #elif defined( THORNADO_OACC   )
     !$ACC PARALLEL LOOP GANG VECTOR COLLAPSE(3) &
     !$ACC PRIVATE( iS_A, SUM1, SUM2, DetBal, Phi_0_Pro, Phi_0_Ann ) &
@@ -1742,9 +1742,9 @@ CONTAINS
 
 #if   defined( THORNADO_OMP_OL )
     !$OMP TARGET TEAMS DISTRIBUTE PARALLEL DO COLLAPSE(3) &
-    !$OMP PRIVATE( iS_A, SUM1, SUM2, DetBal, Phi_0_Ann, Phi_0_Pro ) &
-    !$OMP MAP( to: S_Sigma, W2, J, J0 ) &
-    !$OMP MAP( from: Eta, Chi )
+    !$OMP PRIVATE( iS_A, SUM1, SUM2, DetBal, Phi_0_Ann, Phi_0_Pro ) 
+    !!$OMP MAP( to: S_Sigma, W2, J, J0 ) 
+    !!$OMP MAP( from: Eta, Chi )
 #elif defined( THORNADO_OACC   )
     !$ACC PARALLEL LOOP GANG VECTOR COLLAPSE(3) &
     !$ACC PRIVATE( iS_A, SUM1, SUM2, DetBal, Phi_0_Ann, Phi_0_Pro ) &
